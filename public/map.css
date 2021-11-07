@@ -1,0 +1,9 @@
+.state {
+  stroke-width: 1;
+  stroke: green;
+}
+
+.state:hover {
+  fill: red;
+  cursor: pointer;
+}
