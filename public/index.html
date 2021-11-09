@@ -1,12 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <title>D3</title>
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <link rel="stylesheet" href="map.css">
-</head>
-<body>
-  <h2 id="hovering-over">..</h2>
-  <script src="map.js"></script>
-</body>
+  <head>
+    <title>D3</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="stylesheet" href="map.css" />
+  </head>
+  <body>
+    <section class="mapSection">
+      <div class="map">
+        <h2 id="hovering-over">..</h2>
+
+        <script src="map.js"></script>
+      </div>
+    </section>
+
+    <section class="toggleSection">
+      <div class="sliderContainer">
+        <input
+          type="range"
+          min="1776"
+          max="2021"
+          value="1776"
+          class="slider"
+          oninput="sliderYear()"
+        />
+        <p>Year: <span class="yearOutput"></span></p>
+      </div>
+      <div class="checkboxContainer">
+        <p>Toggles (Can rename whatever we want):</p>
+        <div class="checkboxes">
+          <input
+            type="checkbox"
+            id="checkbox_1"
+            name="checkbox_1"
+            value="Value_1"
+          />
+          <label for="checkbox_1">Checkbox 1 Value</label><br />
+          <input
+            type="checkbox"
+            id="checkbox_2"
+            name="checkbox_2"
+            value="Value_2"
+          />
+          <label for="checkbox_2">Checkbox 2 Value</label><br />
+          <input
+            type="checkbox"
+            id="checkbox_3"
+            name="checkbox_3"
+            value="Value_3"
+          />
+          <label for="checkbox_3">Checkbox 3 Value</label><br />
+        </div>
+
+        <div>
+          <input type="radio" id="radio_1" name="radio_buttons" value="Rad_1" />
+          <label for="Rad_1">Button 1 Value</label><br />
+          <input type="radio" id="radio_2" name="radio_buttons" value="Rad_2" />
+          <label for="Rad_2">Button 1 Value</label><br />
+          <input type="radio" id="radio_3" name="radio_buttons" value="Rad_3" />
+          <label for="Rad_3">Button 1 Value</label>
+        </div>
+      </div>
+    </section>
+  </body>
 </html>

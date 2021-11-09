@@ -7,3 +7,13 @@
   fill: red;
   cursor: pointer;
 }
+
+.toggleSection {
+  display: flex;
+  justify-content: center;
+}
+
+.visualizationContainer {
+  display: flex;
+  justify-content: center;
+}
