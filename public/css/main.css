@@ -16,9 +16,9 @@ html, body {
 }
 
 .state-graphs {
-  background-color: lightpink;
+  background-color: indianred;
   flex: 0;
   overflow-x: hidden;
   transition: 0.4s;
-  background-color: lightpink;
+  background-color: indianred;
 }

@@ -14,12 +14,12 @@
 }
 
 .state:hover {
-  fill: lightblue;
+  fill: cadetblue;
   cursor: pointer;
 }
 
 .state .selected {
-  fill: lightskyblue;
+  fill: cadetblue;
 }
 
 .toggleSection {
