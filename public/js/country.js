@@ -1,24 +1,27 @@
 class Country {
   constructor() {
-    this.width = 900;
-    this.height = 600;
+    this.width = 960;
+    this.height = 500;
     this.selectedColor = "lightpink"
     this.selectedState;
+    this.data;
 
     $.ajax({
       method: "get",
       url: "/data/topology",
       success: data => {
-        this.setupSvg(data);
+        this.data = data[0];
+        let states = topojson.feature(this.data, this.data.objects.states).features;
+        this.setupSvg(states);
       }
-    })
+    });
   }
 
   fillState(id, color = "") {
     $(`#${id}`).css('fill', color);
   }
 
-  setupSvg(data) {
+  setupSvg(paths) {
     const svg = d3.select(".country-container")
       .append("svg")
       .attr("x", 0)
@@ -29,12 +32,12 @@ class Country {
     const projection = d3.geoAlbersUsa();
     const path = d3.geoPath().projection(projection);
 
-    svg.selectAll("path")
-      .data(data.features)
+    svg.selectAll(".state")
+      .data(paths)
       .enter()
       .append("path")
-      .attr("d", path)
       .attr("class", "state")
+      .attr("d", path)
       .attr("id", (d) => { return d.id })
       .on("click", (d, i) => {
         let newState = i.properties.name;
