@@ -1,12 +1,13 @@
 const express = require('express');
 const fs = require('fs');
+const { getMapPaths } = require("./db");
 
 const router = express.Router();
 
 router.get('/topology', (req, res) => {
-  // todo move this to database
-  let rawData = fs.readFileSync('./data/us-states.json');
-  res.send(JSON.parse(rawData));
+  getMapPaths().then(data => {
+    res.send(data);
+  });
 });
 
 module.exports = router;
