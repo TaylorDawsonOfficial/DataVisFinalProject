@@ -5,7 +5,9 @@ class Country {
     this.selectedColor = "lightpink";
     this.selectedState;
     this.data;
-    this.population_data = [];
+    this.population_data = {};
+    this.earliest_year = 3000;
+    this.latest_year = 1900;
 
     $.ajax({
       method: "get",
@@ -17,7 +19,6 @@ class Country {
           this.data.objects.states
         ).features;
         this.setupSvg(states);
-        assignPopData();
       },
     });
 
@@ -26,16 +27,40 @@ class Country {
       method: "get",
       url: "/data/population",
       success: (pop_data) => {
-        for (let entry of pop_data) {
-          // console.log(entry.years, slider.value);
-          let year_pop = [];
-
-          for (let year of entry.years) {
-            year_pop.push({ year: year.year, population: year.population });
+        //Loop through one state to get the total year range
+        for (let year of pop_data[0].years) {
+          this.population_data[year.year] = {};
+          if (year.year < this.earliest_year) {
+            this.earliest_year = year.year;
           }
 
-          this.population_data[entry.state] = year_pop;
+          if (year.year > this.latest_year) {
+            this.latest_year = year.year;
+          }
         }
+
+        //Loop through each state to get population data
+        for (let state of pop_data) {
+          let year_pop = [];
+
+          //Add population data for each year for each state
+          for (let year of state.years) {
+            this.population_data[year.year][state.state.replaceAll(" ", "")] =
+              year.population;
+          }
+        }
+
+        //Do one final loop through and calculate population total for each year
+        Object.entries(this.population_data).forEach(function (year) {
+          let total = 0;
+          for (let population of Object.entries(year[1])) {
+            total += population[1];
+          }
+
+          year[1]["total_population"] = total;
+        });
+
+        assignPopData(this.earliest_year);
       },
     });
   }
@@ -76,10 +101,44 @@ class Country {
         this.fillState(this.selectedState, this.selectedColor);
       });
   }
+
+  getCurrentYearData(year) {
+    return this.population_data[year];
+  }
 }
 
-function assignPopData() {
-  console.log(Map.Country.population_data);
+/*
+  Updates the current population data based on the selected year in the slider
+*/
+function assignPopData(selected_year) {
+  const currentYearData = Map.Country.getCurrentYearData(selected_year);
+
+  /*
+    If greater than 10% population, full opacity
+    if greater than 7% population, 70% opacity
+    if greater than 5% population, 50% opacity
+    if greater than 3% population, 30% opacity
+    if greater than 1% population, 10% opacity 
+  */
+
+  //Loop through all states and update display based on population data
+  Object.entries(currentYearData).forEach(function (data) {
+    if (data[0] !== "total_population") {
+      let opacity = 0;
+
+      const pop_percentage =
+        (data[1] / currentYearData["total_population"]) * 100;
+      if (pop_percentage > 10) {
+        opacity = 1;
+      } else {
+        opacity = pop_percentage / 10;
+      }
+
+      d3.select(`.${data[0]}`)
+        .attr("fill", "green")
+        .attr("fill-opacity", opacity);
+    }
+  });
 }
 
 /*
@@ -104,13 +163,13 @@ const output = document.querySelector(".yearOutput");
     */
 slider.oninput = function () {
   output.innerHTML = this.value;
-  assignPopData();
+  assignPopData(this.value);
 };
 
 function initializeSlider() {
   slider.min = 1969;
   slider.max = 2019;
-  slider.value = 1969;
+  slider.value = slider.min;
   output.innerHTML = slider.value;
 }
 
