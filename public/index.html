@@ -11,28 +11,35 @@
   <body>
     <div class="container">
       <div class="country-graphs">
-        <div class="country-container">
-        </div>
+        <div class="country-container"></div>
         <section class="toggleSection">
           <div class="sliderContainer">
-            <input
-              type="range"
-              min="1969"
-              max="2009"
-              value="1969"
-              class="slider"
-              oninput="sliderYear()"
-            />
+            <input type="range" class="slider" oninput="Map.Country.test()" />
             <p>Year: <span class="yearOutput"></span></p>
           </div>
           <div class="radioboxContainer">
             <p>Toggles (Can rename whatever we want):</p>
             <div>
-              <input type="radio" id="radio_1" name="radio_buttons" value="Rad_1" />
+              <input
+                type="radio"
+                id="radio_1"
+                name="radio_buttons"
+                value="Rad_1"
+              />
               <label for="Rad_1">Button 1 Value</label><br />
-              <input type="radio" id="radio_2" name="radio_buttons" value="Rad_2" />
+              <input
+                type="radio"
+                id="radio_2"
+                name="radio_buttons"
+                value="Rad_2"
+              />
               <label for="Rad_2">Button 1 Value</label><br />
-              <input type="radio" id="radio_3" name="radio_buttons" value="Rad_3" />
+              <input
+                type="radio"
+                id="radio_3"
+                name="radio_buttons"
+                value="Rad_3"
+              />
               <label for="Rad_3">Button 1 Value</label>
             </div>
           </div>
@@ -53,16 +60,15 @@
       let Map = {};
       Map.Country = new Country();
 
-      Map.selectedStateChanged = function(stateObj) {
+      Map.selectedStateChanged = function (stateObj) {
         Map.State = new State(stateObj);
-        $('.state-graphs').css('flex', '1');
-      }
+        $(".state-graphs").css("flex", "1");
+      };
 
-      Map.closeState = function() {
+      Map.closeState = function () {
         Map.Country.fillState(Map.State.stateObj.id);
-        $('.state-graphs').css('flex', '0');
-      }
+        $(".state-graphs").css("flex", "0");
+      };
     </script>
-
   </body>
 </html>
