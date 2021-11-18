@@ -6,13 +6,36 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="http://d3js.org/topojson.v2.min.js"></script>
     <link rel="stylesheet" href="css/main.css" />
-    <link rel="stylesheet" href="css/country.css" />
+    <link rel="stylesheet" href="css/countryGraphs.css" />
   </head>
   <body>
     <div class="container">
       <div class="country-graphs">
-        <div class="country-container"></div>
+        <div class="country-container">
+        </div>
         <section class="toggleSection">
+          <div class="bar-buttons">
+            <button id="by-state"> Sort by State</button>
+            <button id="by-population"> Sort by Population</button>
+          </div>
+          <form id="vis-option">
+            <input
+              type="radio"
+              id="map"
+              name="vis-options"
+              value="map"
+              checked
+            />
+            <label for="map">Map View</label><br />
+            <input
+              type="radio"
+              id="chart"
+              name="vis-options"
+              value="chart"
+            />
+            <label for="chart">Bar Chart View</label>
+          </form>
+
           <div class="sliderContainer">
             <input type="range" class="slider" oninput="Map.Country.test()" />
             <p>Year: <span class="yearOutput"></span></p>
@@ -24,9 +47,10 @@
                 type="radio"
                 id="radio_1"
                 name="radio_buttons"
-                value="Rad_1"
+                value="total-pop"
+                checked
               />
-              <label for="Rad_1">Button 1 Value</label><br />
+              <label for="total-pop">Total Population</label><br />
               <input
                 type="radio"
                 id="radio_2"
@@ -47,28 +71,14 @@
       </div>
       <div class="state-graphs">
         <h1 id="selectedState">hi</h1>
-        <button id="closeState" onclick="Map.closeState()">Close</button>
+        <button id="closeState" onclick="Vis.closeStateView()">Close</button>
         <p>state specific graphs...</p>
       </div>
     </div>
 
     <script src="js/country.js"></script>
     <script src="js/state.js"></script>
-    <script>
-      // basically just global variables... probably a better way to do this
-      // but I can't use export/require in the server side?
-      let Map = {};
-      Map.Country = new Country();
-
-      Map.selectedStateChanged = function (stateObj) {
-        Map.State = new State(stateObj);
-        $(".state-graphs").css("flex", "1");
-      };
-
-      Map.closeState = function () {
-        Map.Country.fillState(Map.State.stateObj.id);
-        $(".state-graphs").css("flex", "0");
-      };
-    </script>
+    <script src="js/countryBarChart.js"></script>
+    <script src="js/loader.js"></script>
   </body>
 </html>
