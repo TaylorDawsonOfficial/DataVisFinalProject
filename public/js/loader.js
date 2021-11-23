@@ -2,7 +2,7 @@
 /*
   Slider code
 */
-const slider = document.querySelector(".slider");
+const slider = document.querySelector("#slider");
 const output = document.querySelector(".yearOutput");
 
 /*
@@ -121,10 +121,19 @@ $(document).ready(function () {
   initializeSlider();
   Vis = new Data();
 
-  Vis.selectedChart = $("input[name='vis-options']:checked").val();
-  $('#vis-option').change(function () {
-    $(`#svg-${Vis.selectedChart}`).css("display", "none");
-    Vis.selectedChart = $("input[name='vis-options']:checked").val();
-    $(`#svg-${Vis.selectedChart}`).css("display", "");
-  })
+
+  // watch the view select
+  Vis.selectedChart = $('#vis-option option:selected').val();
+  $('#sort-by-container').hide();
+  $('#vis-option').change(() => {
+    $(`#svg-${Vis.selectedChart}`).hide();
+    Vis.selectedChart = $('#vis-option option:selected').val();
+    $(`#svg-${Vis.selectedChart}`).show();
+
+    if (Vis.selectedChart === "map") {
+      $('#sort-by-container').hide();
+    } else if (Vis.selectedChart === "bar") {
+      $('#sort-by-container').show();
+    }
+  });
 })
