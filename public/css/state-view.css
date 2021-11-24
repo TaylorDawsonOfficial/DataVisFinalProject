@@ -1,0 +1,29 @@
+html, body {
+  margin: 0px;
+}
+
+.state-container {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  height: 100vh;
+}
+
+.main-graph {
+}
+
+.side-graphs {
+  display: grid;
+  grid-template-rows: 1fr 1fr 1fr;
+}
+
+.graph1 {
+  background-color: lightblue;
+}
+
+.graph2 {
+  background-color: lightgreen;
+}
+
+.graph3 {
+  background-color: lightpink;
+}

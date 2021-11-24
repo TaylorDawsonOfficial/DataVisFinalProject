@@ -37,7 +37,7 @@ class Country {
       })
       .on("click", (event, d) => {
         let newState = d.properties.name;
-        console.log(newState);
+        window.location.href = `state/${newState.replace(' ', '-')}`;
       });
   }
 

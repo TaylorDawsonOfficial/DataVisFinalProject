@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title><%= state %></title>
+
+    <!-- Stylesheets -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/state-view.css" />
+  </head>
+  <body>
+    <div class="state-container">
+      <div class="main-graph">
+        <!-- Section for the filtering/change views/toggle buttons-->
+        <section class="controls-section">
+
+        </section>
+
+        <!--Section for the map -->
+        <section class="vis-section">
+
+        </section>
+
+        <!-- Section for the slider -->
+        <section class="slider-section">
+
+        </section>
+      </div>
+
+      <div class="side-graphs">
+        <div class="graph1">
+          <h2>graph 1</h2>
+        </div>
+        <div class="graph2">
+          <h2>graph 2</h2>
+        </div>
+        <div class="graph3">
+          <h2>graph 3</h2>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+
+
+<script>
+  let x = '<%= state %>';
+  console.log(x);
+</script>
