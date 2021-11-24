@@ -2,9 +2,13 @@ html, body {
   margin: 0px;
 }
 
+.columns {
+  column-count: 4;
+}
+
 .country-container {
   display: grid;
-  grid-template-rows: 3fr 15fr 2fr;
+  grid-template-rows: 1fr 2fr 10fr 1fr;
   height: 100vh;
 }
 

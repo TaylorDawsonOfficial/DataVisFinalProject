@@ -13,6 +13,56 @@
         <!-- Section for the filtering/change views/toggle buttons-->
         <section class="controls-section">
 
+          <!-- Section to control the view -->
+          <div class="vis-options">
+            <div id="view-option">
+              <label for="vis-option">Select View</label>
+              <select class="form-select form-select-sm" name="vis-option" id="vis-option">
+                <option id="map" value="map">Map</option>
+                <option id="bar" value="bar">Bar Chart</option>
+              </select>
+            </div>
+  
+            <div id="sort-by-container">
+              <label for="sort-by">Sort By</label>
+              <select class="form-select form-select-sm" name="sort-by" id="sort-by">
+                <option value="state">State</option>
+                <option value="population">Population</option>
+              </select>
+            </div>
+          </div>
+  
+          <!-- Section to control what data the graphs are using -->
+          <div class="data-options">
+            <div>
+              <input
+                type="radio"
+                id="radio_1"
+                name="radio_buttons"
+                value="total-pop"
+                checked
+              />
+              <label for="total-pop">Total Population</label>
+            </div>
+            <div>
+              <input
+                type="radio"
+                id="radio_2"
+                name="radio_buttons"
+                value="Rad_2"
+              />
+              <label for="Rad_2">Button 1 Value</label>
+            </div>
+            <div>
+              <input
+                type="radio"
+                id="radio_3"
+                name="radio_buttons"
+                value="Rad_3"
+              />
+              <label for="Rad_3">Button 1 Value</label>
+            </div>
+          </div>
         </section>
 
         <!--Section for the map -->
