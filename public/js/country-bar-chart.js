@@ -71,7 +71,7 @@ class CountryBarChart {
 
   setupSvg() {
     this.svg = d3
-      .select(".country-container")
+      .select(".visualization")
       .append("svg")
       .attr("x", 0)
       .attr("y", 0)

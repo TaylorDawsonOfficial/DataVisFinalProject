@@ -1,0 +1,101 @@
+html, body {
+  margin: 0px;
+}
+
+.columns {
+  column-count: 4;
+}
+
+.state-container {
+  display: grid;
+  grid-template-areas: 
+    "navbar navbar"
+    "main-graph side-graphs";
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr 14fr;
+  height: 100vh;
+}
+
+nav {
+  grid-area: navbar;
+}
+
+.main-graph {
+  grid-area: main-graph;
+  display: grid;
+  grid-template-rows: 2fr 8fr 1fr;
+}
+
+.controls-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1em;
+  padding: 0 0.5em;
+}
+
+.vis-options {
+  display: flex;
+  flex-direction: column;
+}
+
+.data-options {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.vis-section {
+  background-color: whitesmoke;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 100vw;
+  max-height: 100vh;
+}
+
+.visualization {
+  flex: 1;
+  width: 100%;
+  max-width: calc(120vh);
+}
+
+.county {
+  stroke-width: 1;
+  stroke: white;
+}
+
+.county:hover {
+  fill: red;
+}
+
+.slider-section {
+  display: flex;
+  justify-content: center;
+}
+
+.slider-container {
+  width: 75%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.side-graphs {
+  grid-area: side-graphs;
+  background-color: lightpink;
+  display: grid;
+  grid-template-rows: 1fr 1fr 1fr;
+}
+
+.graph1 {
+  background-color: lightblue;
+}
+
+.graph2 {
+  background-color: lightgreen;
+}
+
+.graph3 {
+  background-color: lightpink;
+}

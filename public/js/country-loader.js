@@ -1,26 +1,3 @@
-
-/*
-  Slider code
-*/
-const slider = document.querySelector("#slider");
-const output = document.querySelector(".yearOutput");
-
-/*
-  Updates the text for the slider whenever the slider moves
-*/
-slider.oninput = function () {
-  output.innerHTML = this.value;
-  Vis.assignPopData();
-};
-
-
-function initializeSlider() {
-  slider.min = 1969;
-  slider.max = 2019;
-  slider.value = slider.min;
-  output.innerHTML = slider.value;
-}
-
 class Data {
   constructor() {
     this.topologyData;
@@ -85,34 +62,42 @@ class Data {
     });
   }
 
-
   // when entering the app you should see the map visualization
   initalizeVisualization() {
     this.country = new Country(this.topologyData, this.populationData[slider.value]);
     this.countryBarChart = new CountryBarChart(this.populationList[slider.value]);
   }
 
-
   assignPopData() {
     this.country.assignPopData(this.populationData[slider.value]);
     this.countryBarChart.assignPopData(this.populationList[slider.value]);
   }
+}
+let Vis;
 
 
-  // when clicking on a state, create a new state object
-  openStateView(stateObj) {
-    this.state = new State(stateObj);
-    $(".state-graphs").css("flex", "1");
-  }
+/*
+  Slider code
+*/
+const slider = document.querySelector("#slider");
+const output = document.querySelector(".yearOutput");
 
-  closeStateView() {
-    this.country.fillState(this.state.stateObj.id);
-    $(".state-graphs").css("flex", "0");
-  }
+/*
+  Updates the text for the slider whenever the slider moves
+*/
+slider.oninput = function () {
+  output.innerHTML = this.value;
+  Vis.assignPopData();
+};
+
+
+function initializeSlider() {
+  slider.min = 1969;
+  slider.max = 2019;
+  slider.value = slider.min;
+  output.innerHTML = slider.value;
 }
 
-
-let Vis;
 
 /*
   Sets up values on HTML page after page has loaded
@@ -120,6 +105,9 @@ let Vis;
 $(document).ready(function () {
   initializeSlider();
   Vis = new Data();
+
+  // set navbar link to active
+  $('#home').addClass('active');
 
 
   // watch the view select

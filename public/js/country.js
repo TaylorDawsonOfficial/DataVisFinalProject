@@ -2,8 +2,6 @@ class Country {
   constructor(topologyData, initialYearData) {
     this.width = 960;
     this.height = 500;
-    this.selectedColor = "lightpink";
-    this.selectedState;
 
     let states = topojson.feature(topologyData, topologyData.objects.states).features;
     this.setupSvg(states);
@@ -16,7 +14,7 @@ class Country {
 
   setupSvg(paths) {
     const svg = d3
-      .select(".country-container")
+      .select(".visualization")
       .append("svg")
       .attr("x", 0)
       .attr("y", 0)
@@ -39,12 +37,7 @@ class Country {
       })
       .on("click", (event, d) => {
         let newState = d.properties.name;
-        if (this.selectedState && this.selectedState !== newState) {
-          this.fillState(this.selectedState);
-        }
-        this.selectedState = d.id;
-        Vis.openStateView(d);
-        this.fillState(this.selectedState, this.selectedColor);
+        window.location.href = `state/${newState.replace(' ', '-')}`;
       });
   }
 

@@ -4,6 +4,7 @@ const fs = require('fs');
 
 const dbName = "population";
 const mapPathsCollection = "map-paths";
+const stateMapPathsCollection = "state-map-paths";
 const stateCollection = "states";
 const countyCollection = "counties";
 
@@ -63,37 +64,39 @@ cleanCountyFile = (csv) => {
   let results = {};
   let lines = csv.split("\r\n");
   let headers;
-  let keyIndex;
   lines.forEach((line, index) => {
     let data = line.split("|");
     if (data.length > 1) {
       if (index === 0) {
         headers = data;
-        keyIndex = headers.findIndex(x => x === "Geographic Area");
       }
       else {
-        let geographicArea = data[keyIndex];
-        geographicArea = geographicArea.replace(/ county,/ig, ',');
-        geographicArea = geographicArea.replace(/ census area,/ig, ',');
-        geographicArea = geographicArea.replace(/ municipality,/ig, ',');
-        geographicArea = geographicArea.replace(/ borough,/ig, ',');
-        geographicArea = geographicArea.replace(/ parish,/ig, ',');
-        geographicArea = geographicArea.replace(/ city,/ig, 'City,');
-        let combined = geographicArea.split(",");
-        let county = combined[0];
-        let state = combined[1];
+        let county = data[0];
+        let state = data[1];
+        let fips = data[2];
+
+        // county = county.replace(/ county,/ig, ',');
+        // county = county.replace(/ census area,/ig, ',');
+        // county = county.replace(/ municipality,/ig, ',');
+        // county = county.replace(/ borough,/ig, ',');
+        // county = county.replace(/ parish,/ig, ',');
+        county = county.replace(/ city,/ig, ' City,');
 
         if (!(state in results)) {
           results[state] = {};
         }
-        results[state][county] = {};
+        results[state][county] = {
+          "Fips": fips,
+          "Years": {}
+        };
+
 
         for (let i = 0; i < headers.length; i++) {
           let val = data[i];
           let key = headers[i];
-          if (key !== "Geographic Area" && key !== "Census" && key !== "Estimates Base") {
+          if (key !== "County" && key !== "State" && key !== "Census" && key !== "Estimates Base" && key !== "Fips") {
             val = stringToNumber(val);
-            results[state][county][key] = val;
+            results[state][county]["Years"][key] = val;
           }
         }
       }
@@ -104,13 +107,16 @@ cleanCountyFile = (csv) => {
   for (let state in results) {
     for (let county in results[state]) {
       let obj = {
-        state, county, years: []
+        state,
+        county,
+        fips: results[state][county].Fips,
+        years: []
       };
 
-      for (let year in results[state][county]) {
+      for (let year in results[state][county]["Years"]) {
         obj.years.push({
           year,
-          population: results[state][county][year]
+          population: results[state][county]["Years"][year]
         });
         obj.years.sort((a, b) => (a.year > b.year) ? 1 : -1);
       }
@@ -120,40 +126,64 @@ cleanCountyFile = (csv) => {
   return data;
 }
 
-MongoClient.connect(url, (e, db) => {
-  if (e) throw e;
+loadStateMapPaths = () => {
+  let path = './data/us-states/';
+  let data = [];
+  let filenames = fs.readdirSync(path);
+  filenames.forEach(filename => {
+    let state = filename
+      .replace('.json', '')
+      .split('-')
+      .map(s => s.charAt(0).toUpperCase() + s.substring(1))
+      .join(' ')
+    let rawMapData = fs.readFileSync(`${path}${filename}`);
+    let mapData = JSON.parse(rawMapData);
+    data.push({
+      state,
+      value: mapData
+    });
+  });
+
+  return data;
+}
+
+(async () => {
+  let db = await MongoClient.connect(url);
   let dbo = db.db(dbName);
   console.log(`Created ${dbName}`);
 
+  await dbo.collection(mapPathsCollection).drop((e, res) => { });
+  await dbo.collection(stateCollection).drop((e, res) => { });
+  await dbo.collection(countyCollection).drop((e, res) => { });
+  await dbo.collection(stateMapPathsCollection).drop((e, res) => { });
+  console.log("dropped existing collections");
+
   // add map paths to database
-  let rawMapPathData = fs.readFileSync('./data/counties-10m.json');
+  let rawMapPathData = fs.readFileSync('./data/states-10m.json');
   let mapPathData = JSON.parse(rawMapPathData);
-  dbo.collection(mapPathsCollection).insertOne(mapPathData, (e, res) => {
-    if (e) throw e;
-    console.log(`successfully added ${mapPathsCollection}`);
-  });
+  let res = await dbo.collection(mapPathsCollection).insertOne(mapPathData);
+  console.log(`successfully added ${mapPathsCollection}`);
+
+  // add state map paths to database
+  let stateMapPathData = loadStateMapPaths();
+  res = await dbo.collection(stateMapPathsCollection).insertMany(stateMapPathData);
+  console.log(`successfully added ${res.insertedCount} maps to ${stateMapPathsCollection}`);
 
   // add state data to database
   const stateOldFile = fs.readFileSync("./data/popest-annual-historical.csv", "utf-8");
   const stateOldData = convertStateToJson(stateOldFile);
-
   const stateNewFile = fs.readFileSync("./data/popest-annual.csv", "utf-8");
   const stateNewData = convertStateToJson(stateNewFile);
-
   let stateData = combineOldAndNew(stateOldData, stateNewData);
-
-  dbo.collection(stateCollection).insertMany(stateData, (e, res) => {
-    if (e) throw e;
-    console.log(`successfully added ${res.insertedCount} documents to ${stateCollection}`);
-  });
-
+  res = await dbo.collection(stateCollection).insertMany(stateData);
+  console.log(`successfully added ${res.insertedCount} documents to ${stateCollection}`);
 
   // add counties to database
   let rawCountyData = fs.readFileSync('./data/co-est2019-annres.csv', "utf-8");
   let countyData = cleanCountyFile(rawCountyData);
-  dbo.collection(countyCollection).insertMany(countyData, (e, res) => {
-    if (e) throw e;
-    console.log(`successfully added ${res.insertedCount} documents to ${countyCollection}`);
-    db.close();
-  });
-});
+  res = await dbo.collection(countyCollection).insertMany(countyData);
+  console.log(`successfully added ${res.insertedCount} documents to ${countyCollection}`);
+
+  console.log('all done');
+  db.close();
+})()
