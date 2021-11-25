@@ -17,7 +17,12 @@ Model State Population over ~50 years.
 ## Folder Structure
 
 ### public
-* client side html/css/js files
+* client side css/js files
+
+### views
+* contains HTML files
+    * We are using the EJS templating engine for this project
+
 
 ### data
 * states-10m.json
