@@ -79,7 +79,9 @@
 
         <!--Section for the map -->
         <section class="vis-section">
-
+          <div class="visualization">
+            
+          </div>
         </section>
 
         <!-- Section for the slider -->
@@ -103,23 +105,12 @@
         </div>
       </div>
     </div>
+
+    <script>
+      const STATE = '<%= state %>';
+    </script>
+
+    <script src="/js/state.js"></script>
+    <script src="/js/state-loader.js"></script>
   </body>
 </html>
-
-<script>
-  let state = '<%= state %>';
-  $.ajax({
-    method: "get",
-    url: `/data/counties/${state}`,
-    success: data => {
-      return $.ajax({
-      method: "get",
-      url: "/data/topology",
-      success: dat => {
-        console.log(data);
-        console.log(dat[0].objects.counties);
-      }
-      });
-    }
-  });
-</script>

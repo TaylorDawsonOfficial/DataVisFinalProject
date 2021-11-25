@@ -1,5 +1,5 @@
 const express = require("express");
-const { getMapPaths, getStateData, getPopulationByState, getCountiesByState } = require("./db");
+const { getMapPaths, getStateData, getPopulationByState, getCountiesByState, getStateMapPath } = require("./db");
 
 const router = express.Router();
 
@@ -9,6 +9,12 @@ router.get("/topology", (req, res) => {
   });
 });
 
+router.get("/topology/:state", (req, res) => {
+  getStateMapPath(req.params.state).then((data) => {
+    res.send(data.value);
+  })
+})
+
 router.get("/population", (req, res) => {
   getStateData().then((data) => {
     res.send(data);
@@ -17,7 +23,7 @@ router.get("/population", (req, res) => {
 
 router.get("/population/:state", (req, res) => {
   getPopulationByState(req.params.state).then((data) => {
-    res.send(data[0]);
+    res.send(data);
   })
 })
 

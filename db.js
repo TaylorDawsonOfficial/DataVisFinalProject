@@ -4,6 +4,15 @@ const dbName = "population";
 const client = new MongoClient(url);
 let db;
 
+function stateFormatter(state) {
+  let x = state
+    .toLowerCase()
+    .split('-')
+    .map(s => s.charAt(0).toUpperCase() + s.substring(1))
+    .join(' ')
+  return x;
+}
+
 const init = () => {
   client.connect((e) => {
     if (e) throw e;
@@ -14,26 +23,32 @@ const init = () => {
 
 const getMapPaths = () => {
   const collection = "map-paths";
-  const statePathCol = db.collection(collection);
-  return statePathCol.find({}, {}).toArray();
+  const col = db.collection(collection);
+  return col.find({}, {}).toArray();
 };
+
+const getStateMapPath = (state) => {
+  const collection = "state-map-paths";
+  const col = db.collection(collection);
+  return col.findOne({ state: stateFormatter(state) }, {});
+}
 
 const getStateData = () => {
   const collection = "states";
-  const statePathCol = db.collection(collection);
-  return statePathCol.find({}, {}).toArray();
+  const col = db.collection(collection);
+  return col.find({}, {}).toArray();
 };
 
 const getPopulationByState = (state) => {
   const collection = "states";
-  const statePathCol = db.collection(collection);
-  return statePathCol.find({ state: state.replace('-', ' ') }, {}).toArray();
+  const col = db.collection(collection);
+  return col.findOne({ state: stateFormatter(state) }, {});
 }
 
 const getCountiesByState = (state) => {
   const collection = "counties";
-  const countyPathCol = db.collection(collection);
-  return countyPathCol.find({ state: state.replace('-', ' ') }, {}).toArray();
+  const col = db.collection(collection);
+  return col.find({ state: stateFormatter(state) }, {}).toArray();
 }
 
-module.exports = { init, getMapPaths, getStateData, getPopulationByState, getCountiesByState };
+module.exports = { init, getMapPaths, getStateData, getPopulationByState, getCountiesByState, getStateMapPath };

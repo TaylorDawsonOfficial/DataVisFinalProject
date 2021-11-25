@@ -4,6 +4,7 @@ const fs = require('fs');
 
 const dbName = "population";
 const mapPathsCollection = "map-paths";
+const stateMapPathsCollection = "state-map-paths";
 const stateCollection = "states";
 const countyCollection = "counties";
 
@@ -117,51 +118,64 @@ cleanCountyFile = (csv) => {
   return data;
 }
 
-MongoClient.connect(url, (e, db) => {
-  if (e) throw e;
+loadStateMapPaths = () => {
+  let path = './data/us-states/';
+  let data = [];
+  let filenames = fs.readdirSync(path);
+  filenames.forEach(filename => {
+    let state = filename
+      .replace('.json', '')
+      .split('-')
+      .map(s => s.charAt(0).toUpperCase() + s.substring(1))
+      .join(' ')
+    let rawMapData = fs.readFileSync(`${path}${filename}`);
+    let mapData = JSON.parse(rawMapData);
+    data.push({
+      state,
+      value: mapData
+    });
+  });
+
+  return data;
+}
+
+(async () => {
+  let db = await MongoClient.connect(url);
   let dbo = db.db(dbName);
   console.log(`Created ${dbName}`);
 
-  // delete collections so we dont duplicate data
-  dbo.collection(mapPathsCollection).drop((e, res) => {
-    if (e) throw e;
-  })
-  dbo.collection(stateCollection).drop((e, res) => {
-    if (e) throw e;
-  })
-  dbo.collection(countyCollection).drop((e, res) => {
-    if (e) throw e;
-  })
+  await dbo.collection(mapPathsCollection).drop((e, res) => { });
+  await dbo.collection(stateCollection).drop((e, res) => { });
+  await dbo.collection(countyCollection).drop((e, res) => { });
+  await dbo.collection(stateMapPathsCollection).drop((e, res) => { });
+  console.log("dropped existing collections");
 
   // add map paths to database
   let rawMapPathData = fs.readFileSync('./data/states-10m.json');
   let mapPathData = JSON.parse(rawMapPathData);
-  dbo.collection(mapPathsCollection).insertOne(mapPathData, (e, res) => {
-    if (e) throw e;
-    console.log(`successfully added ${mapPathsCollection}`);
-  });
+  let res = await dbo.collection(mapPathsCollection).insertOne(mapPathData);
+  console.log(`successfully added ${mapPathsCollection}`);
+
+  // add state map paths to database
+  let stateMapPathData = loadStateMapPaths();
+  res = await dbo.collection(stateMapPathsCollection).insertMany(stateMapPathData);
+  console.log(`successfully added ${res.insertedCount} maps to ${stateMapPathsCollection}`);
 
   // add state data to database
   const stateOldFile = fs.readFileSync("./data/popest-annual-historical.csv", "utf-8");
   const stateOldData = convertStateToJson(stateOldFile);
-
   const stateNewFile = fs.readFileSync("./data/popest-annual.csv", "utf-8");
   const stateNewData = convertStateToJson(stateNewFile);
-
   let stateData = combineOldAndNew(stateOldData, stateNewData);
-
-  dbo.collection(stateCollection).insertMany(stateData, (e, res) => {
-    if (e) throw e;
-    console.log(`successfully added ${res.insertedCount} documents to ${stateCollection}`);
-  });
-
+  res = await dbo.collection(stateCollection).insertMany(stateData);
+  console.log(`successfully added ${res.insertedCount} documents to ${stateCollection}`);
 
   // add counties to database
   let rawCountyData = fs.readFileSync('./data/co-est2019-annres.csv', "utf-8");
   let countyData = cleanCountyFile(rawCountyData);
-  dbo.collection(countyCollection).insertMany(countyData, (e, res) => {
-    if (e) throw e;
-    console.log(`successfully added ${res.insertedCount} documents to ${countyCollection}`);
-    db.close();
-  });
-});
+  res = await dbo.collection(countyCollection).insertMany(countyData);
+  console.log(`successfully added ${res.insertedCount} documents to ${countyCollection}`);
+
+  console.log('all done');
+  db.close();
+})()
