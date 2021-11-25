@@ -19,7 +19,7 @@ class State {
       .attr("viewBox", `0 0 ${this.width} ${this.height}`)
       .attr("preserveAspectRatio", "xMidYMid meet");
 
-    // for some reason Alaska is weird and looks awful with geoMercator
+    // for some reason Alaska is weird and looks small with geoMercator
     let projection;
     if (this.stateName.toLowerCase() === "alaska") {
       projection = d3.geoAlbersUsa().scale(1).translate([0, 0]);
@@ -44,6 +44,7 @@ class State {
       .append("path")
       .attr("class", "county")
       .attr("d", path)
+      .attr("id", d => { return d.properties.GEOID }) // this GEOID maps back to the fips code in the countyPopulation data. You can use it as a key to get the population data
       .on('mouseover', (e, d) => { console.log(d) });
   }
 }

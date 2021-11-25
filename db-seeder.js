@@ -73,6 +73,7 @@ cleanCountyFile = (csv) => {
       else {
         let county = data[0];
         let state = data[1];
+        let fips = data[2];
 
         // county = county.replace(/ county,/ig, ',');
         // county = county.replace(/ census area,/ig, ',');
@@ -84,14 +85,18 @@ cleanCountyFile = (csv) => {
         if (!(state in results)) {
           results[state] = {};
         }
-        results[state][county] = {};
+        results[state][county] = {
+          "Fips": fips,
+          "Years": {}
+        };
+
 
         for (let i = 0; i < headers.length; i++) {
           let val = data[i];
           let key = headers[i];
-          if (key !== "County" && key !== "State" && key !== "Census" && key !== "Estimates Base") {
+          if (key !== "County" && key !== "State" && key !== "Census" && key !== "Estimates Base" && key !== "Fips") {
             val = stringToNumber(val);
-            results[state][county][key] = val;
+            results[state][county]["Years"][key] = val;
           }
         }
       }
@@ -102,13 +107,16 @@ cleanCountyFile = (csv) => {
   for (let state in results) {
     for (let county in results[state]) {
       let obj = {
-        state, county, years: []
+        state,
+        county,
+        fips: results[state][county].Fips,
+        years: []
       };
 
-      for (let year in results[state][county]) {
+      for (let year in results[state][county]["Years"]) {
         obj.years.push({
           year,
-          population: results[state][county][year]
+          population: results[state][county]["Years"][year]
         });
         obj.years.sort((a, b) => (a.year > b.year) ? 1 : -1);
       }

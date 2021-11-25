@@ -13,6 +13,7 @@ class Data {
       console.log('done loading everything');
 
       console.log("countyPopulation contains every county and the population between 2010-2019");
+      //use the property fips to match up with the correct county on the map. on the map data it is under GEOID
       console.log(this.countyPopulation);
 
       console.log("stateHistroyPopulation contains the population of the state form 1969-2019");
