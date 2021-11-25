@@ -19,6 +19,7 @@
   </head>
   <body>
     <div class="country-container">
+      <!-- Navbar section. Note to get this html component to be shared between files I used ejs https://ejs.co/-->
       <%- include('./partials/navbar.html'); %>
 
       <!-- Section for the filtering/change views/toggle buttons-->
@@ -36,7 +37,7 @@
             <label for="sort-by">Sort By</label>
             <select class="form-select form-select-sm" name="sort-by" id="sort-by">
               <option value="state">State</option>
-              <option value="population">Population</option>
+              <option value="population">Value</option>
             </select>
           </div>
         </div>

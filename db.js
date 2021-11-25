@@ -24,4 +24,16 @@ const getStateData = () => {
   return statePathCol.find({}, {}).toArray();
 };
 
-module.exports = { init, getMapPaths, getStateData };
+const getPopulationByState = (state) => {
+  const collection = "states";
+  const statePathCol = db.collection(collection);
+  return statePathCol.find({ state: state.replace('-', ' ') }, {}).toArray();
+}
+
+const getCountiesByState = (state) => {
+  const collection = "counties";
+  const countyPathCol = db.collection(collection);
+  return countyPathCol.find({ state: state.replace('-', ' ') }, {}).toArray();
+}
+
+module.exports = { init, getMapPaths, getStateData, getPopulationByState, getCountiesByState };

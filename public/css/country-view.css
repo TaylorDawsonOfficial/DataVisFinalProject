@@ -8,7 +8,7 @@ html, body {
 
 .country-container {
   display: grid;
-  grid-template-rows: 1fr 2fr 10fr 1fr;
+  grid-template-rows: 1fr 2fr 11fr 1fr;
   height: 100vh;
 }
 

@@ -2,16 +2,28 @@ html, body {
   margin: 0px;
 }
 
+.columns {
+  column-count: 4;
+}
+
 .state-container {
   display: grid;
+  grid-template-areas: 
+    "navbar navbar"
+    "main-graph side-graphs";
   grid-template-columns: 3fr 2fr;
+  grid-template-rows: 1fr 14fr;
   height: 100vh;
 }
 
+nav {
+  grid-area: navbar;
+}
+
 .main-graph {
+  grid-area: main-graph;
   display: grid;
-  grid-template-rows: 3fr 15fr 2fr;
-  height: 100vh;
+  grid-template-rows: 1fr 4fr 1fr;
 }
 
 .controls-section {
@@ -21,13 +33,37 @@ html, body {
   padding: 0 0.5em;
 }
 
-.navigation-section {
+.vis-options {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+}
+
+.data-options {
+  display: flex;
+  flex-direction: column;
   justify-content: center;
 }
 
+.vis-section {
+  background-color: whitesmoke;
+}
+
+.slider-section {
+  display: flex;
+  justify-content: center;
+}
+
+.slider-container {
+  width: 75%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
 .side-graphs {
+  grid-area: side-graphs;
+  background-color: lightpink;
   display: grid;
   grid-template-rows: 1fr 1fr 1fr;
 }

@@ -106,6 +106,9 @@ $(document).ready(function () {
   initializeSlider();
   Vis = new Data();
 
+  // set navbar link to active
+  $('#home').addClass('active');
+
 
   // watch the view select
   Vis.selectedChart = $('#vis-option option:selected').val();

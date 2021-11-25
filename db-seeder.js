@@ -63,25 +63,22 @@ cleanCountyFile = (csv) => {
   let results = {};
   let lines = csv.split("\r\n");
   let headers;
-  let keyIndex;
   lines.forEach((line, index) => {
     let data = line.split("|");
     if (data.length > 1) {
       if (index === 0) {
         headers = data;
-        keyIndex = headers.findIndex(x => x === "Geographic Area");
       }
       else {
-        let geographicArea = data[keyIndex];
-        geographicArea = geographicArea.replace(/ county,/ig, ',');
-        geographicArea = geographicArea.replace(/ census area,/ig, ',');
-        geographicArea = geographicArea.replace(/ municipality,/ig, ',');
-        geographicArea = geographicArea.replace(/ borough,/ig, ',');
-        geographicArea = geographicArea.replace(/ parish,/ig, ',');
-        geographicArea = geographicArea.replace(/ city,/ig, 'City,');
-        let combined = geographicArea.split(",");
-        let county = combined[0];
-        let state = combined[1];
+        let county = data[0];
+        let state = data[1];
+
+        // county = county.replace(/ county,/ig, ',');
+        // county = county.replace(/ census area,/ig, ',');
+        // county = county.replace(/ municipality,/ig, ',');
+        // county = county.replace(/ borough,/ig, ',');
+        // county = county.replace(/ parish,/ig, ',');
+        county = county.replace(/ city,/ig, ' City,');
 
         if (!(state in results)) {
           results[state] = {};
@@ -91,7 +88,7 @@ cleanCountyFile = (csv) => {
         for (let i = 0; i < headers.length; i++) {
           let val = data[i];
           let key = headers[i];
-          if (key !== "Geographic Area" && key !== "Census" && key !== "Estimates Base") {
+          if (key !== "County" && key !== "State" && key !== "Census" && key !== "Estimates Base") {
             val = stringToNumber(val);
             results[state][county][key] = val;
           }
@@ -125,8 +122,19 @@ MongoClient.connect(url, (e, db) => {
   let dbo = db.db(dbName);
   console.log(`Created ${dbName}`);
 
+  // delete collections so we dont duplicate data
+  dbo.collection(mapPathsCollection).drop((e, res) => {
+    if (e) throw e;
+  })
+  dbo.collection(stateCollection).drop((e, res) => {
+    if (e) throw e;
+  })
+  dbo.collection(countyCollection).drop((e, res) => {
+    if (e) throw e;
+  })
+
   // add map paths to database
-  let rawMapPathData = fs.readFileSync('./data/counties-10m.json');
+  let rawMapPathData = fs.readFileSync('./data/states-10m.json');
   let mapPathData = JSON.parse(rawMapPathData);
   dbo.collection(mapPathsCollection).insertOne(mapPathData, (e, res) => {
     if (e) throw e;

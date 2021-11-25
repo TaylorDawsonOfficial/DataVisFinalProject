@@ -20,8 +20,8 @@ Model State Population over ~50 years.
 * client side html/css/js files
 
 ### data
-* counties-10m.json
-    * Contains path information d3 reads to mark the state/county boundaries. This was retrieved from https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json
+* states-10m.json
+    * Contains path information d3 reads to mark the state boundaries. This was retrieved from here: https://github.com/topojson/us-atlas
 * popest-annual-historical.csv
     * contains state population data from 1969-2009
 * popest-annual.csv
