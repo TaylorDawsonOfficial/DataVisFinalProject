@@ -29,6 +29,8 @@ Model State Population over ~50 years.
     * Contains path information d3 reads to mark the state boundaries. This was retrieved from here: https://github.com/topojson/us-atlas
 * us-states folder
     * Contains geo data for each individual state. Retrieved from here: https://github.com/deldersveld/topojson/tree/master/countries/us-states
+* state-land-area
+    * Contains the square mile area for each state. Retrieved from here: https://worldpopulationreview.com/state-rankings/states-by-area
 * popest-annual-historical.csv
     * contains state population data from 1969-2009
 * popest-annual.csv

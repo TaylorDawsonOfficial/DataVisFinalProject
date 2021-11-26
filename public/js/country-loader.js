@@ -1,13 +1,18 @@
 class Data {
   constructor() {
     this.topologyData;
+    this.landAreaData = {};
     this.populationData = {};
     this.populationList = {};
+
+    this.landAreaPopulationList = {};
 
     this.state;
     this.country;
     this.countryBarChart;
     this.selectedChart;
+
+    this.selectedData = "total-pop";
 
 
     // will fire when we have retrieved all our data
@@ -26,14 +31,32 @@ class Data {
     });
   }
 
-  loadStatePopulation() {
+  async loadLandArea() {
+    this.landAreaData = {};
+    return $.ajax({
+      method: "get",
+      url: "/data/state-land-area",
+      success: data => {
+        data.forEach(x => {
+          this.landAreaData[x.state] = x["square miles"];
+        });
+      }
+    })
+  }
+
+  async loadStatePopulation() {
+    await this.loadLandArea();
+    console.log(this.landAreaData);
+
     return $.ajax({
       method: "get",
       url: "/data/population",
       success: data => {
+
         for (let year of data[0].years) {
           this.populationData[year.year] = {};
           this.populationList[year.year] = [];
+          this.landAreaPopulationList[year.year] = [];
         }
 
         //Loop through each state to get population data
@@ -46,6 +69,10 @@ class Data {
               state: state.state,
               population: year.population
             })
+            this.landAreaPopulationList[year.year].push({
+              state: state.state,
+              population: year.population / this.landAreaData[state.state]
+            });
           }
         }
 
@@ -69,8 +96,20 @@ class Data {
   }
 
   assignPopData() {
+    if (this.selectedData === "total-pop") {
+      this.countryBarChart.assignPopData(this.populationList[slider.value]);
+    }
+    else if (this.selectedData === "square-mile") {
+      this.countryBarChart.assignPopData(this.landAreaPopulationList[slider.value]);
+    }
+    else if (this.selectedData === "percentage-pop") {
+      // todo create data for population out of 100%
+    }
+    else if (this.selectedData === "pop-increase") {
+      // todo create data for population increase since 1969...
+    }
+
     this.country.assignPopData(this.populationData[slider.value]);
-    this.countryBarChart.assignPopData(this.populationList[slider.value]);
   }
 }
 let Vis;
@@ -124,4 +163,10 @@ $(document).ready(function () {
       $('#sort-by-container').show();
     }
   });
+
+  // watch the button change
+  $('#radio-buttons').change(() => {
+    Vis.selectedData = $("input[name='radio_buttons']:checked").val()
+    Vis.assignPopData();
+  })
 })

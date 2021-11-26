@@ -7,6 +7,7 @@ const mapPathsCollection = "map-paths";
 const stateMapPathsCollection = "state-map-paths";
 const stateCollection = "states";
 const countyCollection = "counties";
+const stateLandCollection = "state-land-area";
 
 stringToNumber = (s) => {
   return parseFloat(s.replace(/,/g, ''));
@@ -147,6 +148,23 @@ loadStateMapPaths = () => {
   return data;
 }
 
+loadLandArea = (csv) => {
+  let results = [];
+  let lines = csv.split("\r\n");
+  lines.forEach((line, index) => {
+    let data = line.split("|");
+    if (data.length > 1) {
+      let state = data[0];
+      let total = stringToNumber(data[1]);
+      results.push({
+        state,
+        "square miles": total
+      })
+    }
+  });
+  return results;
+}
+
 (async () => {
   let db = await MongoClient.connect(url);
   let dbo = db.db(dbName);
@@ -156,6 +174,7 @@ loadStateMapPaths = () => {
   await dbo.collection(stateCollection).drop((e, res) => { });
   await dbo.collection(countyCollection).drop((e, res) => { });
   await dbo.collection(stateMapPathsCollection).drop((e, res) => { });
+  await dbo.collection(stateLandCollection).drop((e, res) => { });
   console.log("dropped existing collections");
 
   // add map paths to database
@@ -168,6 +187,12 @@ loadStateMapPaths = () => {
   let stateMapPathData = loadStateMapPaths();
   res = await dbo.collection(stateMapPathsCollection).insertMany(stateMapPathData);
   console.log(`successfully added ${res.insertedCount} maps to ${stateMapPathsCollection}`);
+
+  // add state land area info to database
+  const stateLandArea = fs.readFileSync("./data/state-land-area.csv", "utf-8");
+  const stateLandData = loadLandArea(stateLandArea);
+  res = await dbo.collection(stateLandCollection).insertMany(stateLandData);
+  console.log(`successfully added ${res.insertedCount} documents to ${stateLandCollection}`);
 
   // add state data to database
   const stateOldFile = fs.readFileSync("./data/popest-annual-historical.csv", "utf-8");

@@ -51,4 +51,18 @@ const getCountiesByState = (state) => {
   return col.find({ state: stateFormatter(state) }, {}).toArray();
 }
 
-module.exports = { init, getMapPaths, getStateData, getPopulationByState, getCountiesByState, getStateMapPath };
+const getStateLandArea = () => {
+  const collection = "state-land-area"
+  const col = db.collection(collection)
+  return col.find({}, {}).toArray();
+}
+
+module.exports = {
+  init,
+  getMapPaths,
+  getStateData,
+  getPopulationByState,
+  getCountiesByState,
+  getStateMapPath,
+  getStateLandArea
+};

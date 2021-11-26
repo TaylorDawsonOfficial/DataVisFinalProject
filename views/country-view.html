@@ -42,7 +42,7 @@
           </div>
         </div>
 
-        <div class="data-options">
+        <form id="radio-buttons" class="data-options">
           <div>
             <input
               type="radio"
@@ -51,27 +51,36 @@
               value="total-pop"
               checked
             />
-            <label for="total-pop">Total Population</label>
+            <label for="total-pop">Total Population (works on bar chart)</label>
           </div>
           <div>
             <input
               type="radio"
               id="radio_2"
               name="radio_buttons"
-              value="Rad_2"
+              value="square-mile"
             />
-            <label for="Rad_2">Button 1 Value</label>
+            <label for="square-mile">Population Per Square Mile (works on bar chart)</label>
           </div>
           <div>
             <input
               type="radio"
               id="radio_3"
               name="radio_buttons"
-              value="Rad_3"
+              value="percentage-pop"
             />
-            <label for="Rad_3">Button 1 Value</label>
+            <label for="percentage-pop">Percentage of Total Population (on map right now)</label>
           </div>
-        </div>
+          <div>
+            <input
+              type="radio"
+              id="radio_4"
+              name="radio_buttons"
+              value="pop-increase"
+            />
+            <label for="pop-increase">Population Increase since 1969 (not working on either)</label>
+          </div>
+        </form>
       </section>
 
       <!--Section for the map -->

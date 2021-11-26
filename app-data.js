@@ -1,5 +1,5 @@
 const express = require("express");
-const { getMapPaths, getStateData, getPopulationByState, getCountiesByState, getStateMapPath } = require("./db");
+const { getMapPaths, getStateData, getPopulationByState, getCountiesByState, getStateMapPath, getStateLandArea } = require("./db");
 
 const router = express.Router();
 
@@ -31,6 +31,12 @@ router.get("/counties/:state", (req, res) => {
   getCountiesByState(req.params.state).then((data => {
     res.send(data);
   }))
+})
+
+router.get("/state-land-area", (req, res) => {
+  getStateLandArea().then((data) => {
+    res.send(data);
+  })
 })
 
 module.exports = router;
