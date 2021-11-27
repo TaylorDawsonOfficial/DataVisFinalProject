@@ -2,11 +2,25 @@ class Country {
   constructor(topologyData, initialYearData) {
     this.width = 960;
     this.height = 500;
-    this.mapColors = ["#f2f0f7", "#cbc9e2", "#9e9ac8", "#756bb1", "#54278f"];
+    // this.mapColors = ["#f2f0f7", "#cbc9e2", "#9e9ac8", "#756bb1", "#54278f"];
+    this.mapColors = [
+      "#f3f0ff",
+      "#e5dbff",
+      "#d0bfff",
+      "#b197fc",
+      "#9775fa",
+      "#845ef7",
+      "#7950f2",
+      "#7048e8",
+      "#6741d9",
+      "#5f3dc4",
+    ];
     this.mapColorFill;
     this.minPopPercent;
     this.maxPopPercent;
     this.countrySVG;
+    this.legendWidth = 350;
+    this.legendHeight = 20;
 
     let states = topojson.feature(
       topologyData,
@@ -55,22 +69,35 @@ class Country {
 
   /**
    * Creates Legend element and appends to Country SVG
-   * @param {} populationData 
+   * @param {} populationData
    */
   createLegend(populationData) {
     this.mapColorFill = d3.scaleQuantile().range(this.mapColors);
 
-    this.updateLegendValues(populationData);
+    this.updateLegend(populationData);
+  }
+
+  /**
+   * Updated legend axis scale with new values from chosen year
+   */
+  updateLegend(populationData) {
+    this.minPopPercent = +(
+      (populationData["smallest_population"] /
+        populationData["total_population"]) *
+      100
+    ).toFixed(2);
+    this.maxPopPercent = +(
+      (populationData["largest_population"] /
+        populationData["total_population"]) *
+      100
+    ).toFixed(2);
 
     //Legend data
     this.mapColorFill.domain([this.minPopPercent, this.maxPopPercent]);
 
-    const legendWidth = 200;
-    const legendHeight = 20;
-
     let fillRange = [];
     for (let i = 0; i <= this.mapColors.length; i++) {
-      fillRange.push((legendWidth / this.mapColors.length) * i);
+      fillRange.push((this.legendWidth / this.mapColors.length) * i);
     }
 
     let legendAxisScale = d3.scaleQuantile().range(fillRange);
@@ -85,13 +112,14 @@ class Country {
 
     legendScale.push(this.maxPopPercent);
 
-    console.log(legendScale);
-
     legendAxisScale.domain(legendScale);
+
+    d3.selectAll(".axis__legend").remove();
 
     let legendAxis = d3
       .axisBottom(legendAxisScale)
       .tickFormat((x) => x.toFixed(2) + "%");
+
     let legend = this.countrySVG
       .selectAll(".legend")
       .data(this.mapColors)
@@ -99,43 +127,106 @@ class Country {
       .append("g")
       .attr(
         "transform",
-        `translate(${this.width - legendWidth - 15},${this.height - 140})`
+        `translate(${this.width - this.legendWidth - 15},${this.height - 140})`
       );
 
     legend
       .append("rect")
-      .attr("width", legendWidth / this.mapColors.length)
-      .attr("height", legendHeight)
+      .attr("width", this.legendWidth / this.mapColors.length)
+      .attr("height", this.legendHeight)
       .style("fill", (d) => d)
-      .attr("x", (d, i) => (legendWidth / this.mapColors.length) * i);
+      .attr("x", (d, i) => (this.legendWidth / this.mapColors.length) * i);
 
     this.countrySVG
       .append("g")
-      .attr("class", "axis")
+      .attr("class", "axis axis__legend")
       .attr(
         "transform",
-        `translate(${this.width - legendWidth - 15},${this.height - 120})`
+        `translate(${this.width - this.legendWidth - 15},${this.height - 120})`
       )
       .call(legendAxis);
   }
 
-  /**
-   * Loops through new data set to compute
-   * @param {*} populationData
-   */
-  updateLegendValues(populationData) {
-    // console.log(populationData);
-    this.minPopPercent = +(
-      (populationData["smallest_population"] /
-        populationData["total_population"]) *
-      100
-    ).toFixed(2);
-    this.maxPopPercent = +(
-      (populationData["largest_population"] /
-        populationData["total_population"]) *
-      100
-    ).toFixed(2);
-  }
+  // /**
+  //  * Creates Legend element and appends to Country SVG
+  //  * @param {} populationData
+  //  */
+  // createLegend(populationData) {
+  //   this.mapColorFill = d3.scaleQuantile().range(this.mapColors);
+
+  //   this.updateLegendValues(populationData);
+
+  //   //Legend data
+  //   this.mapColorFill.domain([this.minPopPercent, this.maxPopPercent]);
+
+  //   let fillRange = [];
+  //   for (let i = 0; i <= this.mapColors.length; i++) {
+  //     fillRange.push((this.legendWidth / this.mapColors.length) * i);
+  //   }
+
+  //   let legendAxisScale = d3.scaleQuantile().range(fillRange);
+
+  //   let diff =
+  //     (this.maxPopPercent - this.minPopPercent) / this.mapColors.length;
+  //   let legendScale = [];
+  //   legendScale.push(this.minPopPercent);
+  //   for (let i = 0; i < this.mapColors.length - 1; i++) {
+  //     legendScale.push(diff * (i + 1) + +this.minPopPercent);
+  //   }
+
+  //   legendScale.push(this.maxPopPercent);
+
+  //   console.log(legendScale);
+
+  //   legendAxisScale.domain(legendScale);
+
+  //   let legendAxis = d3
+  //     .axisBottom(legendAxisScale)
+  //     .tickFormat((x) => x.toFixed(2) + "%");
+  //   let legend = this.countrySVG
+  //     .selectAll(".legend")
+  //     .data(this.mapColors)
+  //     .enter()
+  //     .append("g")
+  //     .attr(
+  //       "transform",
+  //       `translate(${this.width - this.legendWidth - 15},${this.height - 140})`
+  //     );
+
+  //   legend
+  //     .append("rect")
+  //     .attr("width", this.legendWidth / this.mapColors.length)
+  //     .attr("height", this.legendHeight)
+  //     .style("fill", (d) => d)
+  //     .attr("x", (d, i) => (this.legendWidth / this.mapColors.length) * i);
+
+  //   this.countrySVG
+  //     .append("g")
+  //     .attr("class", "axis")
+  //     .attr(
+  //       "transform",
+  //       `translate(${this.width - this.legendWidth - 15},${this.height - 120})`
+  //     )
+  //     .call(legendAxis);
+  // }
+
+  // /**
+  //  * Loops through new data set to compute
+  //  * @param {*} populationData
+  //  */
+  // updateLegendValues(populationData) {
+  //   // console.log(populationData);
+  //   this.minPopPercent = +(
+  //     (populationData["smallest_population"] /
+  //       populationData["total_population"]) *
+  //     100
+  //   ).toFixed(2);
+  //   this.maxPopPercent = +(
+  //     (populationData["largest_population"] /
+  //       populationData["total_population"]) *
+  //     100
+  //   ).toFixed(2);
+  // }
 
   /*
     Updates the current population data based on the selected year in the slider

@@ -47,11 +47,8 @@ class Data {
       method: "get",
       url: `/data/counties/${this.stateName}`,
       success: (data) => {
-
         Object.entries(data).forEach((d) => {
-          const county_name = d[1].county
-            .replace(/[^a-zA-Z0-9 !?]+/g, "")
-            .replaceAll(" ", "");
+          const county_id = d[1].fips;
 
           let minPop = Number.MAX_SAFE_INTEGER;
           let maxPop = Number.MIN_SAFE_INTEGER;
@@ -60,21 +57,26 @@ class Data {
           d[1].years.forEach((d) => {
             if (this.countyPopulation[d.year] === undefined) {
               this.countyPopulation[d.year] = {};
-              this.countyPopulation[d.year]["lowest_population"] = Number.MAX_SAFE_INTEGER;
-              this.countyPopulation[d.year]["highest_population"] = Number.MIN_SAFE_INTEGER;
+              this.countyPopulation[d.year]["lowest_population"] =
+                Number.MAX_SAFE_INTEGER;
+              this.countyPopulation[d.year]["highest_population"] =
+                Number.MIN_SAFE_INTEGER;
             }
 
-            this.countyPopulation[d.year][county_name] = d.population;
+            this.countyPopulation[d.year][county_id] = d.population;
 
-            if(d.population < this.countyPopulation[d.year]["lowest_population"])
+            if (
+              d.population < this.countyPopulation[d.year]["lowest_population"]
+            )
               this.countyPopulation[d.year]["lowest_population"] = d.population;
 
-            if(d.population > this.countyPopulation[d.year]["highest_population"])
-              this.countyPopulation[d.year]["highest_population"] = d.population;
+            if (
+              d.population > this.countyPopulation[d.year]["highest_population"]
+            )
+              this.countyPopulation[d.year]["highest_population"] =
+                d.population;
           });
         });
-
-
       },
     });
   }
@@ -111,6 +113,13 @@ class Data {
       this.stateHistoryPopulation[slider.value]
     );
   }
+
+  updateLegend() {
+    this.stateVis.updateLegend(
+      this.countyPopulation[slider.value],
+      this.stateHistoryPopulation[slider.value]
+    );
+  }
 }
 
 /*
@@ -124,6 +133,7 @@ const output = document.querySelector(".yearOutput");
 */
 slider.oninput = function () {
   output.innerHTML = this.value;
+  Vis.updateLegend();
   Vis.assignPopData();
 };
 

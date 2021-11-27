@@ -3,11 +3,25 @@ class State {
     this.stateName = stateName;
     this.width = 960;
     this.height = 500;
-    this.mapColors = ["#f2f0f7", "#cbc9e2", "#9e9ac8", "#756bb1", "#54278f"];
+    // this.mapColors = ["#f2f0f7", "#cbc9e2", "#9e9ac8", "#756bb1", "#54278f"];
+    this.mapColors = [
+      "#f3f0ff",
+      "#e5dbff",
+      "#d0bfff",
+      "#b197fc",
+      "#9775fa",
+      "#845ef7",
+      "#7950f2",
+      "#7048e8",
+      "#6741d9",
+      "#5f3dc4",
+    ];
     this.mapColorFill;
     this.minPopPercent;
     this.maxPopPercent;
     this.stateSVG;
+    this.legendWidth = 400;
+    this.legendHeight = 20;
 
     let key = Object.keys(topologyData.objects)[0];
     let state = topojson.feature(topologyData, topologyData.objects[key]);
@@ -23,6 +37,8 @@ class State {
   setupSvg(state, countyPopData, totalStatePopulation) {
     this.stateSVG = d3
       .select(".visualization")
+      .append("div")
+      .attr("class", "map_container")
       .append("svg")
       .attr("x", 0)
       .attr("y", 0)
@@ -31,6 +47,11 @@ class State {
     this.stateSVG
       .attr("viewBox", `0 0 ${this.width} ${this.height}`)
       .attr("preserveAspectRatio", "xMidYMid meet");
+
+    // this.stateSVG = d3
+    //   .select(".visualization")
+    //   .append("div")
+    //   .attr("class", "legend_container");
 
     // for some reason Alaska is weird and looks small with geoMercator
     let projection;
@@ -62,15 +83,10 @@ class State {
       .data(state.features)
       .enter()
       .append("path")
-      .attr(
-        "class",
-        (d) => {
-          return `county ${d.properties.NAME.replace(
-            /[^a-zA-Z0-9 !?]+/g,
-            ""
-          ).replaceAll(" ", "")}County`;
-        }
-      )
+      .attr("class", (d) => {
+        // console.log(d.properties.NAME, d.properties.GEOID);
+        return `county county__${d.properties.GEOID}`;
+      })
       .attr("d", path)
       .attr("id", (d) => {
         return d.properties.GEOID;
@@ -79,27 +95,38 @@ class State {
         console.log(d);
       });
 
-      this.createLegend(countyPopData, totalStatePopulation);
+    this.createLegend(countyPopData, totalStatePopulation);
   }
 
- /**
+  /**
    * Creates Legend element and appends to Country SVG
-   * @param {} populationData 
+   * @param {} populationData
    */
   createLegend(countyPopData, totalStatePopulation) {
     this.mapColorFill = d3.scaleQuantile().range(this.mapColors);
 
-    this.updateLegendValues(countyPopData, totalStatePopulation);
+    this.updateLegend(countyPopData, totalStatePopulation);
+  }
+
+  /**
+   * Updated legend axis scale with new values from chosen year
+   */
+  updateLegend(countyPopData, totalStatePopulation) {
+    this.minPopPercent = +(
+      (countyPopData["lowest_population"] / totalStatePopulation) *
+      100
+    ).toFixed(2);
+    this.maxPopPercent = +(
+      (countyPopData["highest_population"] / totalStatePopulation) *
+      100
+    ).toFixed(2);
 
     //Legend data
     this.mapColorFill.domain([this.minPopPercent, this.maxPopPercent]);
 
-    const legendWidth = 200;
-    const legendHeight = 20;
-
     let fillRange = [];
     for (let i = 0; i <= this.mapColors.length; i++) {
-      fillRange.push((legendWidth / this.mapColors.length) * i);
+      fillRange.push((this.legendWidth / this.mapColors.length) * i);
     }
 
     let legendAxisScale = d3.scaleQuantile().range(fillRange);
@@ -116,9 +143,12 @@ class State {
 
     legendAxisScale.domain(legendScale);
 
+    d3.selectAll(".axis__legend").remove();
+
     let legendAxis = d3
       .axisBottom(legendAxisScale)
       .tickFormat((x) => x.toFixed(2) + "%");
+
     let legend = this.stateSVG
       .selectAll(".legend")
       .data(this.mapColors)
@@ -126,42 +156,24 @@ class State {
       .append("g")
       .attr(
         "transform",
-        `translate(${this.width - legendWidth - 15},${this.height - 140})`
+        `translate(${this.width - this.legendWidth - 15},${this.height - 140})`
       );
 
     legend
       .append("rect")
-      .attr("width", legendWidth / this.mapColors.length)
-      .attr("height", legendHeight)
+      .attr("width", this.legendWidth / this.mapColors.length)
+      .attr("height", this.legendHeight)
       .style("fill", (d) => d)
-      .attr("x", (d, i) => (legendWidth / this.mapColors.length) * i);
+      .attr("x", (d, i) => (this.legendWidth / this.mapColors.length) * i);
 
     this.stateSVG
       .append("g")
-      .attr("class", "axis")
+      .attr("class", "axis axis__legend")
       .attr(
         "transform",
-        `translate(${this.width - legendWidth - 15},${this.height - 120})`
+        `translate(${this.width - this.legendWidth - 15},${this.height - 120})`
       )
       .call(legendAxis);
-  }
-
-  /**
-   * Loops through new data set to compute
-   * @param {*} populationData
-   */
-  updateLegendValues(populationData, totalStatePopulation) {
-    // console.log(populationData);
-    this.minPopPercent = +(
-      (populationData["lowest_population"] /
-        totalStatePopulation) *
-      100
-    ).toFixed(2);
-    this.maxPopPercent = +(
-      (populationData["highest_population"] /
-        totalStatePopulation) *
-      100
-    ).toFixed(2);
   }
 
   /*
@@ -170,18 +182,16 @@ class State {
   assignPopData(county_data, state_population) {
     //Loop through all states and update display based on population data
     const stateObject = this;
-    console.log(county_data);
 
     Object.entries(county_data).forEach(function (data) {
-      if(data[0] !== "lowest_population" && data[0] !== "highest_population"){
-        // console.log(data[1], state_population);
-        
+      if (data[0] !== "lowest_population" && data[0] !== "highest_population") {
         const pop_percentage = (data[1] / state_population) * 100;
-        
-        // console.log(data[0], pop_percentage);
-        
-        d3.select(`.${data[0]}`)
-        .attr("fill", () => stateObject.fillCounty(data[0], pop_percentage));
+
+        const countySelector = `county__${data[0]}`;
+
+        d3.select(`.${countySelector}`).attr("fill", () =>
+          stateObject.fillCounty(countySelector, pop_percentage)
+        );
       }
     });
   }

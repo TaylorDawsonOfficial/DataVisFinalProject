@@ -125,6 +125,10 @@ class Data {
 
     this.country.assignPopData(this.populationData[slider.value]);
   }
+
+  updateLegend() {
+    this.country.updateLegend(this.populationData[slider.value]);
+  }
 }
 let Vis;
 
@@ -139,6 +143,7 @@ const output = document.querySelector(".yearOutput");
 */
 slider.oninput = function () {
   output.innerHTML = this.value;
+  Vis.updateLegend();
   Vis.assignPopData();
 };
 
