@@ -22,6 +22,17 @@ class Country {
     this.legendWidth = 350;
     this.legendHeight = 20;
 
+
+    // document.querySelector("#radio_2").addEventListener("onchange", this.updateMapData);
+
+    d3.selectAll("input[name='radio_buttons']").on("change", this.updateMapData);
+
+    // d3.select('input[name="radio_buttons"]').form.children[1].addEventListener("onchange", this.updateMapData);
+    // document.querySelector('input[name="radio_buttons"]').form.children[1].addEventListener("onchange", this.updateMapData);
+
+    // document.querySelector('input[name="radio_buttons"]').addEventListener("onchange", this.updateMapData);
+
+
     let states = topojson.feature(
       topologyData,
       topologyData.objects.states
@@ -147,87 +158,6 @@ class Country {
       .call(legendAxis);
   }
 
-  // /**
-  //  * Creates Legend element and appends to Country SVG
-  //  * @param {} populationData
-  //  */
-  // createLegend(populationData) {
-  //   this.mapColorFill = d3.scaleQuantile().range(this.mapColors);
-
-  //   this.updateLegendValues(populationData);
-
-  //   //Legend data
-  //   this.mapColorFill.domain([this.minPopPercent, this.maxPopPercent]);
-
-  //   let fillRange = [];
-  //   for (let i = 0; i <= this.mapColors.length; i++) {
-  //     fillRange.push((this.legendWidth / this.mapColors.length) * i);
-  //   }
-
-  //   let legendAxisScale = d3.scaleQuantile().range(fillRange);
-
-  //   let diff =
-  //     (this.maxPopPercent - this.minPopPercent) / this.mapColors.length;
-  //   let legendScale = [];
-  //   legendScale.push(this.minPopPercent);
-  //   for (let i = 0; i < this.mapColors.length - 1; i++) {
-  //     legendScale.push(diff * (i + 1) + +this.minPopPercent);
-  //   }
-
-  //   legendScale.push(this.maxPopPercent);
-
-  //   console.log(legendScale);
-
-  //   legendAxisScale.domain(legendScale);
-
-  //   let legendAxis = d3
-  //     .axisBottom(legendAxisScale)
-  //     .tickFormat((x) => x.toFixed(2) + "%");
-  //   let legend = this.countrySVG
-  //     .selectAll(".legend")
-  //     .data(this.mapColors)
-  //     .enter()
-  //     .append("g")
-  //     .attr(
-  //       "transform",
-  //       `translate(${this.width - this.legendWidth - 15},${this.height - 140})`
-  //     );
-
-  //   legend
-  //     .append("rect")
-  //     .attr("width", this.legendWidth / this.mapColors.length)
-  //     .attr("height", this.legendHeight)
-  //     .style("fill", (d) => d)
-  //     .attr("x", (d, i) => (this.legendWidth / this.mapColors.length) * i);
-
-  //   this.countrySVG
-  //     .append("g")
-  //     .attr("class", "axis")
-  //     .attr(
-  //       "transform",
-  //       `translate(${this.width - this.legendWidth - 15},${this.height - 120})`
-  //     )
-  //     .call(legendAxis);
-  // }
-
-  // /**
-  //  * Loops through new data set to compute
-  //  * @param {*} populationData
-  //  */
-  // updateLegendValues(populationData) {
-  //   // console.log(populationData);
-  //   this.minPopPercent = +(
-  //     (populationData["smallest_population"] /
-  //       populationData["total_population"]) *
-  //     100
-  //   ).toFixed(2);
-  //   this.maxPopPercent = +(
-  //     (populationData["largest_population"] /
-  //       populationData["total_population"]) *
-  //     100
-  //   ).toFixed(2);
-  // }
-
   /*
     Updates the current population data based on the selected year in the slider
   */
@@ -245,5 +175,9 @@ class Country {
         );
       }
     });
+  }
+
+  updateMapData(d){
+    console.log(d.target.value);
   }
 }

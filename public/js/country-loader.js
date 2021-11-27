@@ -12,7 +12,8 @@ class Data {
     this.countryBarChart;
     this.selectedChart;
 
-    this.selectedData = "total-pop";
+    //Get the current selected radio button
+    this.selectedData = document.querySelector('input[name="radio_buttons"]:checked').value;
 
     // will fire when we have retrieved all our data
     $.when(this.loadMap(), this.loadStatePopulation()).done(() => {
@@ -39,6 +40,8 @@ class Data {
         data.forEach((x) => {
           this.landAreaData[x.state] = x["square miles"];
         });
+
+        console.log("land area: ", this.landAreaData)
       },
     });
   }
@@ -119,11 +122,12 @@ class Data {
       );
     } else if (this.selectedData === "percentage-pop") {
       // todo create data for population out of 100%
+      this.country.assignPopData(this.populationData[slider.value]);
     } else if (this.selectedData === "pop-increase") {
       // todo create data for population increase since 1969...
     }
 
-    this.country.assignPopData(this.populationData[slider.value]);
+    
   }
 
   updateLegend() {
