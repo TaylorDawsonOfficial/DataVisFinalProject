@@ -3,21 +3,32 @@ class State {
     this.stateName = stateName;
     this.width = 960;
     this.height = 500;
+    this.mapColors = ["#f2f0f7", "#cbc9e2", "#9e9ac8", "#756bb1", "#54278f"];
+    this.mapColorFill;
+    this.minPopPercent;
+    this.maxPopPercent;
+    this.stateSVG;
 
     let key = Object.keys(topologyData.objects)[0];
     let state = topojson.feature(topologyData, topologyData.objects[key]);
-    this.setupSvg(state);
+    this.setupSvg(state, countyData, stateData);
 
     this.assignPopData(countyData, stateData);
   }
 
-  setupSvg(state) {
-    const svg = d3
+  fillCounty(county, population_percentage) {
+    $(`.${county}`).css("fill", this.mapColorFill(population_percentage));
+  }
+
+  setupSvg(state, countyPopData, totalStatePopulation) {
+    this.stateSVG = d3
       .select(".visualization")
       .append("svg")
       .attr("x", 0)
       .attr("y", 0)
-      .attr("id", "svg-state-map")
+      .attr("id", "svg-state-map");
+
+    this.stateSVG
       .attr("viewBox", `0 0 ${this.width} ${this.height}`)
       .attr("preserveAspectRatio", "xMidYMid meet");
 
@@ -46,14 +57,13 @@ class State {
 
     projection.scale(s).translate(t);
 
-    svg
+    this.stateSVG
       .selectAll(".county")
       .data(state.features)
       .enter()
       .append("path")
       .attr(
         "class",
-        // Number(("text-1324").match(/\d+$/))
         (d) => {
           return `county ${d.properties.NAME.replace(
             /[^a-zA-Z0-9 !?]+/g,
@@ -68,35 +78,111 @@ class State {
       .on("mouseover", (e, d) => {
         console.log(d);
       });
+
+      this.createLegend(countyPopData, totalStatePopulation);
+  }
+
+ /**
+   * Creates Legend element and appends to Country SVG
+   * @param {} populationData 
+   */
+  createLegend(countyPopData, totalStatePopulation) {
+    this.mapColorFill = d3.scaleQuantile().range(this.mapColors);
+
+    this.updateLegendValues(countyPopData, totalStatePopulation);
+
+    //Legend data
+    this.mapColorFill.domain([this.minPopPercent, this.maxPopPercent]);
+
+    const legendWidth = 200;
+    const legendHeight = 20;
+
+    let fillRange = [];
+    for (let i = 0; i <= this.mapColors.length; i++) {
+      fillRange.push((legendWidth / this.mapColors.length) * i);
+    }
+
+    let legendAxisScale = d3.scaleQuantile().range(fillRange);
+
+    let diff =
+      (this.maxPopPercent - this.minPopPercent) / this.mapColors.length;
+    let legendScale = [];
+    legendScale.push(this.minPopPercent);
+    for (let i = 0; i < this.mapColors.length - 1; i++) {
+      legendScale.push(diff * (i + 1) + +this.minPopPercent);
+    }
+
+    legendScale.push(this.maxPopPercent);
+
+    legendAxisScale.domain(legendScale);
+
+    let legendAxis = d3
+      .axisBottom(legendAxisScale)
+      .tickFormat((x) => x.toFixed(2) + "%");
+    let legend = this.stateSVG
+      .selectAll(".legend")
+      .data(this.mapColors)
+      .enter()
+      .append("g")
+      .attr(
+        "transform",
+        `translate(${this.width - legendWidth - 15},${this.height - 140})`
+      );
+
+    legend
+      .append("rect")
+      .attr("width", legendWidth / this.mapColors.length)
+      .attr("height", legendHeight)
+      .style("fill", (d) => d)
+      .attr("x", (d, i) => (legendWidth / this.mapColors.length) * i);
+
+    this.stateSVG
+      .append("g")
+      .attr("class", "axis")
+      .attr(
+        "transform",
+        `translate(${this.width - legendWidth - 15},${this.height - 120})`
+      )
+      .call(legendAxis);
+  }
+
+  /**
+   * Loops through new data set to compute
+   * @param {*} populationData
+   */
+  updateLegendValues(populationData, totalStatePopulation) {
+    // console.log(populationData);
+    this.minPopPercent = +(
+      (populationData["lowest_population"] /
+        totalStatePopulation) *
+      100
+    ).toFixed(2);
+    this.maxPopPercent = +(
+      (populationData["highest_population"] /
+        totalStatePopulation) *
+      100
+    ).toFixed(2);
   }
 
   /*
     Updates the current population data based on the selected year in the slider
   */
   assignPopData(county_data, state_population) {
-    /*
-        If greater than 10% population, full opacity
-        if greater than 7% population, 70% opacity
-        if greater than 5% population, 50% opacity
-        if greater than 3% population, 30% opacity
-        if greater than 1% population, 10% opacity 
-      */
-
     //Loop through all states and update display based on population data
-    // console.log(county_data, state_population);
+    const stateObject = this;
+    console.log(county_data);
+
     Object.entries(county_data).forEach(function (data) {
-      let opacity = 0;
-
-      const pop_percentage = (data[1] / state_population) * 100;
-      if (pop_percentage > 10) {
-        opacity = 1;
-      } else {
-        opacity = pop_percentage / 10;
+      if(data[0] !== "lowest_population" && data[0] !== "highest_population"){
+        // console.log(data[1], state_population);
+        
+        const pop_percentage = (data[1] / state_population) * 100;
+        
+        // console.log(data[0], pop_percentage);
+        
+        d3.select(`.${data[0]}`)
+        .attr("fill", () => stateObject.fillCounty(data[0], pop_percentage));
       }
-
-      d3.select(`.${data[0]}`)
-        .attr("fill", "green")
-        .attr("fill-opacity", opacity);
     });
   }
 }

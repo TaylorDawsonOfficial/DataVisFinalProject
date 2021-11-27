@@ -53,10 +53,12 @@ class Country {
     this.createLegend(populationData);
   }
 
+  /**
+   * Creates Legend element and appends to Country SVG
+   * @param {} populationData 
+   */
   createLegend(populationData) {
-    // const colors = ["#f2f0f7", "#cbc9e2", "#9e9ac8", "#756bb1", "#54278f"];
     this.mapColorFill = d3.scaleQuantile().range(this.mapColors);
-    // let fill = d3.scaleQuantile().range(colors);
 
     this.updateLegendValues(populationData);
 

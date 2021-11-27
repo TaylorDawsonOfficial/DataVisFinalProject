@@ -47,23 +47,34 @@ class Data {
       method: "get",
       url: `/data/counties/${this.stateName}`,
       success: (data) => {
-        // this.countyPopulation = data;
 
         Object.entries(data).forEach((d) => {
-          // console.log(d[1]);
           const county_name = d[1].county
             .replace(/[^a-zA-Z0-9 !?]+/g, "")
             .replaceAll(" ", "");
+
+          let minPop = Number.MAX_SAFE_INTEGER;
+          let maxPop = Number.MIN_SAFE_INTEGER;
 
           //Add county population data for each year
           d[1].years.forEach((d) => {
             if (this.countyPopulation[d.year] === undefined) {
               this.countyPopulation[d.year] = {};
+              this.countyPopulation[d.year]["lowest_population"] = Number.MAX_SAFE_INTEGER;
+              this.countyPopulation[d.year]["highest_population"] = Number.MIN_SAFE_INTEGER;
             }
 
             this.countyPopulation[d.year][county_name] = d.population;
+
+            if(d.population < this.countyPopulation[d.year]["lowest_population"])
+              this.countyPopulation[d.year]["lowest_population"] = d.population;
+
+            if(d.population > this.countyPopulation[d.year]["highest_population"])
+              this.countyPopulation[d.year]["highest_population"] = d.population;
           });
         });
+
+
       },
     });
   }
