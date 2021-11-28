@@ -12,8 +12,13 @@ class Data {
     this.countryBarChart;
     this.selectedChart;
 
+    //Set selected radio button to default, which is percentage of total population
+    document.querySelector("#radio_3").checked = true;
+
     //Get the current selected radio button
-    this.selectedData = document.querySelector('input[name="radio_buttons"]:checked').value;
+    this.selectedData = document.querySelector(
+      'input[name="radio_buttons"]:checked'
+    ).value;
 
     // will fire when we have retrieved all our data
     $.when(this.loadMap(), this.loadStatePopulation()).done(() => {
@@ -40,15 +45,12 @@ class Data {
         data.forEach((x) => {
           this.landAreaData[x.state] = x["square miles"];
         });
-
-        console.log("land area: ", this.landAreaData)
       },
     });
   }
 
   async loadStatePopulation() {
     await this.loadLandArea();
-    console.log(this.landAreaData);
 
     return $.ajax({
       method: "get",
@@ -62,14 +64,27 @@ class Data {
 
         //Loop through each state to get population data
         for (let state of data) {
+          const stateName = state.state.replaceAll(" ", "");
           //Add population data for each year for each state
           for (let year of state.years) {
-            this.populationData[year.year][state.state.replaceAll(" ", "")] =
-              year.population;
+            let percentIncrease = 1;
+            if (+year.year > 1969) {
+              percentIncrease = (
+                (year.population /
+                  this.populationData[1969][stateName].population) *
+                100
+              ).toFixed(2);
+            }
+
+            this.populationData[year.year][stateName] = {
+              population: year.population,
+              percent_increase: percentIncrease,
+            };
             this.populationList[year.year].push({
               state: state.state,
               population: year.population,
             });
+
             this.landAreaPopulationList[year.year].push({
               state: state.state,
               population: year.population / this.landAreaData[state.state],
@@ -79,24 +94,40 @@ class Data {
 
         let smallest_pop = Number.MAX_SAFE_INTEGER;
         let largest_pop = Number.MIN_SAFE_INTEGER;
+        let smallest_percent_increase = Number.MAX_SAFE_INTEGER;
+        let largest_percent_increase = Number.MIN_SAFE_INTEGER;
+
+        const temp = this;
 
         //Do one final loop through and calculate population total for each year
         Object.entries(this.populationData).forEach(function (year) {
           let total = 0;
           for (let population of Object.entries(year[1])) {
-            total += population[1];
-            if (population[1] < smallest_pop) {
-              smallest_pop = population[1];
+            const newPop = population[1].population;
+            const newPcntInc = +population[1].percent_increase;
+            total += newPop;
+            if (newPop < smallest_pop) {
+              smallest_pop = newPop;
             }
 
-            if (population[1] > largest_pop) {
-              largest_pop = population[1];
+            if (newPop > largest_pop) {
+              largest_pop = newPop;
+            }
+
+            if (newPcntInc > largest_percent_increase) {
+              largest_percent_increase = newPcntInc;
+            }
+
+            if (newPcntInc < smallest_percent_increase) {
+              smallest_percent_increase = newPcntInc;
             }
           }
 
           year[1]["total_population"] = total;
           year[1]["smallest_population"] = smallest_pop;
           year[1]["largest_population"] = largest_pop;
+          year[1]["smallest_percent_increase"] = smallest_percent_increase;
+          year[1]["largest_percent_increase"] = largest_percent_increase;
         });
       },
     });
@@ -106,7 +137,8 @@ class Data {
   initalizeVisualization() {
     this.country = new Country(
       this.topologyData,
-      this.populationData[slider.value]
+      this.populationData[slider.value],
+      this.selectedData
     );
     this.countryBarChart = new CountryBarChart(
       this.populationList[slider.value]
@@ -114,24 +146,32 @@ class Data {
   }
 
   assignPopData() {
+    this.country.setSelectedData(this.selectedData);
+    Vis.updateLegend();
+
     if (this.selectedData === "total-pop") {
       this.countryBarChart.assignPopData(this.populationList[slider.value]);
+      this.country.assignPopData(this.populationList[slider.value]);
     } else if (this.selectedData === "square-mile") {
       this.countryBarChart.assignPopData(
         this.landAreaPopulationList[slider.value]
       );
-    } else if (this.selectedData === "percentage-pop") {
-      // todo create data for population out of 100%
+      this.country.assignPopData(this.landAreaPopulationList[slider.value]);
+    } else {
+      //Covers percentage of total population and population increase since 1969
       this.country.assignPopData(this.populationData[slider.value]);
-    } else if (this.selectedData === "pop-increase") {
-      // todo create data for population increase since 1969...
     }
-
-    
   }
 
   updateLegend() {
-    this.country.updateLegend(this.populationData[slider.value]);
+    if (this.selectedData === "total-pop") {
+      this.country.updateLegend(this.populationList[slider.value]);
+    } else if (this.selectedData === "square-mile") {
+      this.country.updateLegend(this.landAreaPopulationList[slider.value]);
+    } else {
+      //Covers percentage of total population and population increase since 1969
+      this.country.updateLegend(this.populationData[slider.value]);
+    }
   }
 }
 let Vis;
@@ -147,7 +187,6 @@ const output = document.querySelector(".yearOutput");
 */
 slider.oninput = function () {
   output.innerHTML = this.value;
-  Vis.updateLegend();
   Vis.assignPopData();
 };
 
