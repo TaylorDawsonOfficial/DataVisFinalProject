@@ -1,7 +1,7 @@
 class Country {
   constructor(topologyData, initialYearData, selectedDataType) {
     this.width = 960;
-    this.height = 500;
+    this.height = 600;
     // this.mapColors = ["#f2f0f7", "#cbc9e2", "#9e9ac8", "#756bb1", "#54278f"];
     this.mapColors = [
       "#f3f0ff",
@@ -20,7 +20,7 @@ class Country {
     this.maxAxisValue;
     this.countrySVG;
     this.legendWidth = 800;
-    this.legendHeight = 20;
+    this.legendHeight = 25;
     this.selectedData = selectedDataType;
 
     // //Add change event to radio buttons
@@ -158,7 +158,7 @@ class Country {
       .append("g")
       .attr(
         "transform",
-        `translate(${this.width - this.legendWidth - 15},${this.height - 140})`
+        `translate(${this.width - this.legendWidth - 75},${this.height - (this.legendHeight * 2)})`
       );
 
     legend
@@ -173,7 +173,7 @@ class Country {
       .attr("class", "axis axis__legend")
       .attr(
         "transform",
-        `translate(${this.width - this.legendWidth - 15},${this.height - 120})`
+        `translate(${this.width - this.legendWidth - 75}, ${this.height - this.legendHeight})`
       )
       .call(legendAxis);
   }
@@ -188,7 +188,7 @@ class Country {
       case "total-pop":
         currentYearData.forEach((d) => {
           const stateName = d.state.replaceAll(" ", "");
-          d3.select(`.${stateName}`).attr("fill", () =>
+          d3.select(`.${stateName} `).attr("fill", () =>
             countryObject.fillState(stateName, d.population)
           );
         });
@@ -197,7 +197,7 @@ class Country {
       case "square-mile":
         currentYearData.forEach((d) => {
           const stateName = d.state.replaceAll(" ", "");
-          d3.select(`.${stateName}`).attr("fill", () =>
+          d3.select(`.${stateName} `).attr("fill", () =>
             countryObject.fillState(stateName, d.population)
           );
         });
@@ -210,7 +210,7 @@ class Country {
             const pop_percentage =
               (data[1].population / currentYearData["total_population"]) * 100;
 
-            d3.select(`.${data[0]}`).attr("fill", () =>
+            d3.select(`.${data[0]} `).attr("fill", () =>
               countryObject.fillState(data[0], pop_percentage)
             );
           }
@@ -219,7 +219,7 @@ class Country {
       case "pop-increase":
         Object.entries(currentYearData).forEach(function (data) {
           if (!countryObject.dataIsNotFilteredValue(data[0])) {
-            d3.select(`.${data[0]}`).attr("fill", () =>
+            d3.select(`.${data[0]} `).attr("fill", () =>
               countryObject.fillState(data[0], +data[1].percent_increase)
             );
           }
