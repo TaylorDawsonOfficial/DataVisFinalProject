@@ -72,10 +72,14 @@ class Data {
               percentIncrease = (increase / this.populationData[1969][stateName].population * 100).toFixed(2);
             }
 
+            // this data feeds into the map
             this.populationData[year.year][stateName] = {
               population: year.population,
               percent_increase: percentIncrease,
+              landarea: year.population / this.landAreaData[state.state]
             };
+
+            // next three are the data that feeds into the barchart
             this.populationList[year.year].push({
               state: state.state,
               population: year.population,
@@ -99,11 +103,14 @@ class Data {
           let largest_pop = Number.MIN_SAFE_INTEGER;
           let smallest_percent_increase = Number.MAX_SAFE_INTEGER;
           let largest_percent_increase = Number.MIN_SAFE_INTEGER;
+          let smallest_landarea = Number.MAX_SAFE_INTEGER;
+          let largest_landarea = Number.MIN_SAFE_INTEGER;
 
           let total = 0;
           for (let population of Object.entries(year[1])) {
             const newPop = population[1].population;
             const newPcntInc = +population[1].percent_increase;
+            const newLandArea = +population[1].landarea;
             total += newPop;
             if (newPop < smallest_pop) {
               smallest_pop = newPop;
@@ -120,6 +127,14 @@ class Data {
             if (newPcntInc < smallest_percent_increase) {
               smallest_percent_increase = newPcntInc;
             }
+
+            if (newLandArea > largest_landarea) {
+              largest_landarea = newLandArea
+            }
+
+            if (newLandArea < smallest_landarea) {
+              smallest_landarea = newLandArea;
+            }
           }
 
           year[1]["total_population"] = total;
@@ -127,6 +142,8 @@ class Data {
           year[1]["largest_population"] = largest_pop;
           year[1]["smallest_percent_increase"] = smallest_percent_increase;
           year[1]["largest_percent_increase"] = largest_percent_increase;
+          year[1]["smallest_landarea"] = smallest_landarea;
+          year[1]["largest_landarea"] = largest_landarea;
         });
       },
     });
@@ -140,38 +157,30 @@ class Data {
       this.selectedData
     );
     this.countryBarChart = new CountryBarChart(
-      this.populationList[slider.value]
+      this.populationList[slider.value],
+      this.selectedData
     );
   }
 
   assignPopData() {
     this.country.setSelectedData(this.selectedData);
+    this.countryBarChart.setSelectedData(this.selectedData);
     Vis.updateLegend();
 
     if (this.selectedData === "total-pop") {
       this.countryBarChart.assignPopData(this.populationList[slider.value]);
-      this.country.assignPopData(this.populationData[slider.value]);
     }
     else if (this.selectedData === "square-mile") {
       this.countryBarChart.assignPopData(this.landAreaPopulationList[slider.value]);
-      this.country.assignPopData(this.landAreaPopulationList[slider.value]);
     }
     else if (this.selectedData === "pop-increase") {
       this.countryBarChart.assignPopData(this.percentIncreaseList[slider.value]);
-      this.country.assignPopData(this.populationData[slider.value]);
     }
+    this.country.assignPopData(this.populationData[slider.value]);
   }
 
   updateLegend() {
-    if (this.selectedData === "total-pop") {
-      this.country.updateLegend(this.populationData[slider.value]);
-    }
-    else if (this.selectedData === "square-mile") {
-      this.country.updateLegend(this.landAreaPopulationList[slider.value]);
-    }
-    else if (this.selectedData === "pop-increase") {
-      this.country.updateLegend(this.populationData[slider.value]);
-    }
+    this.country.updateLegend(this.populationData[slider.value]);
   }
 }
 let Vis;

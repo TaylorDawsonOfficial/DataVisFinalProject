@@ -72,6 +72,23 @@ text {
   font-size: 9pt;
 }
 
+.tooltip {
+  position: absolute;
+  text-align: center;
+  background-color: white;
+  color: black;
+  padding: 0.5em;
+  pointer-events: none;
+}
+
+.visible {
+  opacity: 1;
+}
+
+.invisible {
+  opacity: 0;
+}
+
 .zero-y-axis {
   fill: none;
   stroke: black;

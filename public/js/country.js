@@ -21,6 +21,7 @@ class Country {
     this.legendWidth = 800;
     this.legendHeight = 25;
     this.selectedData = selectedDataType;
+    this.currentData;
 
     let states = topojson.feature(
       topologyData,
@@ -34,7 +35,24 @@ class Country {
     $(`.${state}`).css("fill", this.mapColorFill(population_percentage));
   }
 
+  getHelpText(name) {
+    let key = name.replace(" ", "");
+    if (this.selectedData === "total-pop") {
+      return `${name} Population: ${this.currentData[key].population.toLocaleString("en-US")}`;
+    }
+    else if (this.selectedData === "square-mile") {
+      return `${name} Population Per</br>Square Mile: ${this.currentData[key].landarea.toFixed(2).toLocaleString("en-US")}`;
+    }
+    else if (this.selectedData === "pop-increase") {
+      return `${name} Population Increase</br>Since 1969: ${this.currentData[key].percent_increase}%`;
+    }
+  }
+
   setupSvg(paths, populationData) {
+    // Inspiration for the hoverable tooltip was gathered from here: https://bl.ocks.org/d3noob/a22c42db65eb00d4e369
+    let tooltip = d3.select(".visualization").append("div")
+      .attr("class", "tooltip invisible")
+
     this.countrySVG = d3
       .select(".visualization")
       .append("svg")
@@ -43,26 +61,39 @@ class Country {
       .attr("id", "svg-map");
 
     this.countrySVG
-      .attr("viewBox", `0 0 ${this.width} ${this.height}`)
+      .attr("viewBox", `0 0 ${this.width} ${this.height} `)
       .attr("preserveAspectRatio", "xMidYMid meet");
 
     const projection = d3.geoAlbersUsa();
     const path = d3.geoPath().projection(projection);
 
+    let self = this;
     this.countrySVG
       .selectAll(".state")
       .data(paths)
       .enter()
       .append("path")
-      .attr("class", (d) => `state ${d.properties.name.replaceAll(" ", "")}`) //Adds both state and name of state as a class
+      .attr("class", (d) => `state ${d.properties.name.replaceAll(" ", "")} `) //Adds both state and name of state as a class
       .attr("d", path)
       .attr("id", (d) => {
         return d.id;
       })
       .on("click", (event, d) => {
         let newState = d.properties.name;
-        window.location.href = `state/${newState.replace(" ", "-")}`;
-      });
+        window.location.href = `state / ${newState.replace(" ", "-")} `;
+      })
+      .on("mouseover", function (event, d) {
+        d3.select(this).style("fill-opacity", 0.5);
+        tooltip
+          .html(self.getHelpText(d.properties.name, populationData))
+          .attr("class", "tooltip visible")
+          .style("left", `${event.x}px`)
+          .style("top", `${event.y}px`);
+      })
+      .on("mouseout", function (event, d) {
+        d3.select(this).style("fill-opacity", 1);
+        tooltip.attr("class", "tooltip invisible");
+      })
 
     this.createLegend(populationData);
   }
@@ -81,6 +112,7 @@ class Country {
    * Updated legend axis scale with new values from chosen year
    */
   updateLegend(populationData) {
+    this.currentData = populationData;
     let tickFormat;
     switch (this.selectedData) {
       case "total-pop":
@@ -98,8 +130,10 @@ class Country {
         tickFormat = (x) => x.toFixed(2) + "%";
         break;
       case "square-mile":
-        this.minAxisValue = d3.min(populationData, (d) => d.population);
-        this.maxAxisValue = d3.max(populationData, (d) => d.population);
+        this.minAxisValue =
+          +populationData["smallest_landarea"].toFixed(2);
+        this.maxAxisValue =
+          +populationData["largest_landarea"].toFixed(2);
 
         tickFormat = (x) => x.toFixed(2);
         break;
@@ -145,7 +179,7 @@ class Country {
       .append("g")
       .attr(
         "transform",
-        `translate(${this.width - this.legendWidth - 75},${this.height - (this.legendHeight * 2)})`
+        `translate(${this.width - this.legendWidth - 75}, ${this.height - (this.legendHeight * 2)})`
       );
 
     legend
@@ -184,11 +218,12 @@ class Country {
         });
         break;
       case "square-mile":
-        currentYearData.forEach((d) => {
-          const stateName = d.state.replaceAll(" ", "");
-          d3.select(`.${stateName} `).attr("fill", () =>
-            countryObject.fillState(stateName, d.population)
-          );
+        Object.entries(currentYearData).forEach(function (data) {
+          if (!countryObject.dataIsNotFilteredValue(data[0])) {
+            d3.select(`.${data[0]} `).attr("fill", () =>
+              countryObject.fillState(data[0], +data[1].landarea)
+            );
+          }
         });
         break;
       case "pop-increase":
@@ -213,7 +248,10 @@ class Country {
       valueToTest === "largest_population" ||
       valueToTest === "smallest_percent_increase" ||
       valueToTest === "smallest_population" ||
-      valueToTest === "total_population"
+      valueToTest === "total_population" ||
+      valueToTest === "landarea" ||
+      valueToTest === "smallest_landarea" ||
+      valueToTest === "largest_landarea"
     );
   }
 }

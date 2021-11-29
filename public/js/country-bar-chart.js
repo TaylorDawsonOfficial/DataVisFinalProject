@@ -1,10 +1,11 @@
 class CountryBarChart {
-  constructor(data) {
+  constructor(data, selectedData) {
     this.margin = { top: 20, right: 20, bottom: 95, left: 95 };
     this.width = 860;
     this.height = 500;
     this.data = data;
     this.sortByString = "state";
+    this.selectedData = selectedData;
 
     this.setupSvg();
 
@@ -93,7 +94,26 @@ class CountryBarChart {
       .attr("x2", this.width - this.margin.right);
   }
 
+  getHelpText(d) {
+    if (this.selectedData === "total-pop") {
+      return `${d.state} Population: ${d.population.toLocaleString("en-US")}`;
+    }
+    else if (this.selectedData === "square-mile") {
+      return `${d.state} Population Per</br>Square Mile: ${d.population.toFixed(2).toLocaleString("en-US")}`
+    }
+    else if (this.selectedData === "pop-increase") {
+      return `${d.state} Population Increase</br>Since 1969: ${d.population.toFixed(2).toLocaleString("en-US")}%`
+    }
+  }
+
+  setSelectedData(selectedData) {
+    this.selectedData = selectedData;
+  }
+
   setupSvg() {
+    // Inspiration for the hoverable tooltip was gathered from here: https://bl.ocks.org/d3noob/a22c42db65eb00d4e369
+    let tooltip = d3.select(".tooltip");
+
     this.svg = d3
       .select(".visualization")
       .append("svg")
@@ -153,12 +173,22 @@ class CountryBarChart {
       .attr("transform", "rotate(-90)")
       .text("Population")
 
+    let self = this;
     this.svg.append("g")
       .selectAll(".bar")
       .data(this.data)
       .enter().append("rect")
-      .on('mouseover', (e, d, i) => {
-        console.log(d);
+      .on('mouseover', function (event, d) {
+        d3.select(this).style("opacity", 0.5);
+        tooltip
+          .html(self.getHelpText(d))
+          .attr("class", "tooltip visible")
+          .style("left", `${event.x + 15}px`)
+          .style("top", `${event.y}px`);
+      })
+      .on('mouseout', function (event, d) {
+        d3.select(this).style("opacity", 1);
+        tooltip.attr("class", "tooltip invisible");
       })
       .attr("x", d => { return this.xScale(d.state) })
       .attr("y", d => { return this.yScale(Math.max(0, d.population)) })
