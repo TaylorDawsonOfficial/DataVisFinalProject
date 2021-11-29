@@ -5,6 +5,7 @@ class Data {
     this.countyPopulation = {};
     this.stateHistoryPopulation = {};
     this.topologyData;
+    this.startYear = 2010; //The year th at the slider starts at
 
     this.stateVis;
 
@@ -28,10 +29,13 @@ class Data {
 
         console.log("topologyData contains the info to draw the map");
 
+        console.log(this.stateHistoryPopulation);
+
         this.stateVis = new State(
           this.stateName,
           this.topologyData,
-          this.stateHistoryPopulation[2010],
+          this.stateHistoryPopulation,
+          this.startYear,
           this.countyPopulation[2010]
         );
       }
@@ -49,6 +53,7 @@ class Data {
       success: (data) => {
         Object.entries(data).forEach((d) => {
           const county_id = d[1].fips;
+          const county_name = d[1].county;
 
           let minPop = Number.MAX_SAFE_INTEGER;
           let maxPop = Number.MIN_SAFE_INTEGER;
@@ -63,7 +68,10 @@ class Data {
                 Number.MIN_SAFE_INTEGER;
             }
 
-            this.countyPopulation[d.year][county_id] = d.population;
+            this.countyPopulation[d.year][county_id] = {
+              name: county_name,
+              population: d.population,
+            };
 
             if (
               d.population < this.countyPopulation[d.year]["lowest_population"]

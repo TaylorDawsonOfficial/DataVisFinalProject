@@ -1,4 +1,5 @@
-html, body {
+html,
+body {
   margin: 0px;
 }
 
@@ -8,7 +9,7 @@ html, body {
 
 .state-container {
   display: grid;
-  grid-template-areas: 
+  grid-template-areas:
     "navbar navbar"
     "main-graph side-graphs";
   grid-template-columns: 2fr 1fr;
@@ -90,6 +91,9 @@ nav {
 
 .graph1 {
   background-color: lightblue;
+  padding: 1em;
+  margin: 0 auto;
+  width: 90%;
 }
 
 .graph2 {

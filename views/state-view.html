@@ -9,9 +9,16 @@
     <script src="http://d3js.org/topojson.v2.min.js"></script>
 
     <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" >
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" ></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.min.js" integrity="sha384-Atwg2Pkwv9vp0ygtn1JAojH0nYbwNJLPhwyoVbhoPwBhjQPR5VtM2+xf0Uwh9KtT" crossorigin="anonymous"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.min.js"
+      integrity="sha384-Atwg2Pkwv9vp0ygtn1JAojH0nYbwNJLPhwyoVbhoPwBhjQPR5VtM2+xf0Uwh9KtT"
+      crossorigin="anonymous"
+    ></script>
 
     <!-- Stylesheets -->
     <link rel="stylesheet" href="/css/state-view.css" />
@@ -24,26 +31,33 @@
       <div class="main-graph">
         <!-- Section for the filtering/change views/toggle buttons-->
         <section class="controls-section">
-
           <!-- Section to control the view -->
           <div class="vis-options">
             <div id="view-option">
               <label for="vis-option">Select View</label>
-              <select class="form-select form-select-sm" name="vis-option" id="vis-option">
+              <select
+                class="form-select form-select-sm"
+                name="vis-option"
+                id="vis-option"
+              >
                 <option id="map" value="map">Map</option>
                 <option id="bar" value="bar">Bar Chart</option>
               </select>
             </div>
-  
+
             <div id="sort-by-container">
               <label for="sort-by">Sort By</label>
-              <select class="form-select form-select-sm" name="sort-by" id="sort-by">
+              <select
+                class="form-select form-select-sm"
+                name="sort-by"
+                id="sort-by"
+              >
                 <option value="state">State</option>
                 <option value="population">Value</option>
               </select>
             </div>
           </div>
-  
+
           <!-- Section to control what data the graphs are using -->
           <div class="data-options">
             <div>
@@ -79,9 +93,7 @@
 
         <!--Section for the map -->
         <section class="vis-section">
-          <div class="visualization">
-            
-          </div>
+          <div class="visualization"></div>
         </section>
 
         <!-- Section for the slider -->
@@ -94,12 +106,8 @@
       </div>
 
       <div class="side-graphs">
-        <div class="graph1">
-          <h2>graph 1</h2>
-        </div>
-        <div class="graph2">
-          <h2>graph 2</h2>
-        </div>
+        <div class="graph1"></div>
+        <div class="graph2"></div>
         <div class="graph3">
           <h2>graph 3</h2>
           <p>just put 3 placeholders here.. can add or remove if needed</p>
@@ -108,7 +116,7 @@
     </div>
 
     <script>
-      const STATE = '<%= state %>';
+      const STATE = "<%= state %>";
     </script>
 
     <script src="/js/state.js"></script>
