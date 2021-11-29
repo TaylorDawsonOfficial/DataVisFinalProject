@@ -33,10 +33,10 @@ class State {
     this.assignPopData(countyData, stateData[dataStartYear]);
 
     //Create line chart for state's population from 1969
-    //this.createLineChart(stateData);
+    this.createLineChart(stateData);
 
     //Chart 2
-    //this.createBarChart(countyData);
+    this.createBarChart(countyData);
 
     //Chart 3
   }
@@ -64,7 +64,7 @@ class State {
       .attr("x", 0)
       .attr("y", 0)
       .attr("id", "svg-state-map-legend")
-      .attr("viewBox", `0 0 ${this.width} ${this.legendHeight + 20}`)
+      .attr("viewBox", `0 0 ${this.width} ${this.legendHeight + 30}`)
       .attr("preserveAspectRatio", "xMidYMid meet")
 
     // for some reason Alaska is weird and looks small with geoMercator
@@ -215,32 +215,25 @@ class State {
   }
 
   createLineChart(stateData) {
-    const lineChartSVGHeight = 250;
-    const lineChartSVGWidth = 500;
-    const lineChartSVGMargin = 40;
+    const lineChartSVGHeight = 300;
+    const lineChartSVGWidth = 800;
+    let margin = { top: 30, right: 75, bottom: 40, left: 75 };
 
-    const lineChartHeight = lineChartSVGHeight - 2 * lineChartSVGMargin;
-    const lineChartWidth = lineChartSVGWidth - 2 * lineChartSVGMargin;
 
-    d3.select(".graph1")
+    let svg = d3
+      .select(".graph1")
       .append("svg")
-      .attr("width", lineChartSVGWidth)
-      .attr("height", lineChartSVGHeight)
-      .attr("class", "line_chart_svg")
-      .append("g")
-      .attr(
-        "transform",
-        `translate(${lineChartSVGMargin}, ${lineChartSVGMargin})`
-      );
-
-    let svg = d3.select(".line_chart_svg");
+      .attr("x", 0)
+      .attr("y", 0)
+      .attr("viewBox", `0 0 ${lineChartSVGWidth} ${lineChartSVGHeight}`)
+      .attr("preserveAspectRatio", "xMidYMid meet");
 
     //Title
     svg
       .append("text")
       .attr("class", "title")
-      .attr("x", lineChartWidth / 2 + lineChartSVGMargin)
-      .attr("y", lineChartSVGMargin / 2)
+      .attr("x", lineChartSVGWidth / 2)
+      .attr("y", margin.top / 2)
       .attr("text-anchor", "middle")
       .text("Total State Population from 1969");
 
@@ -249,25 +242,12 @@ class State {
       formattedStateData.push({ year: d[0], population: d[1] });
     });
 
-    console.log(formattedStateData);
-
-    // console.log(d3.min(stateData));
 
     //Create and add axes
     let xScale = d3
       .scaleLinear()
       .domain([1969, 2019])
-      .range([0, lineChartWidth]);
-
-    svg
-      .append("g")
-      .attr("class", "axis x_axis")
-      .attr(
-        "transform",
-        `translate(${lineChartSVGMargin}, ${lineChartSVGMargin + lineChartHeight
-        })`
-      )
-      .call(d3.axisBottom(xScale).tickFormat(d3.format("d")));
+      .range([margin.left, lineChartSVGWidth - margin.right]);
 
     let yScale = d3
       .scaleLinear()
@@ -275,37 +255,56 @@ class State {
         d3.min(formattedStateData, (d) => d.population),
         d3.max(formattedStateData, (d) => d.population),
       ])
-      .range([lineChartHeight, 0]);
+      .range([lineChartSVGHeight - margin.bottom, margin.top]);
 
-    svg
-      .append("g")
-      .attr("class", "axis y_axis")
-      .attr(
-        "transform",
-        `translate(${lineChartSVGMargin}, ${lineChartSVGMargin})`
-      )
-      .call(
-        d3.axisLeft(yScale).tickFormat((d) => this.formatPopulationOnAxis(d))
-      );
+    let xAxis = d3.axisBottom(xScale).tickFormat(d3.format("d"))
+    let yAxis = d3.axisLeft(yScale);
 
-    //Axis labels
+    let xAxisGroup = svg.append("g")
+      .attr("transform", `translate(0, ${lineChartSVGHeight - margin.bottom})`)
+      .call(xAxis);
 
-    //Function to draw line
-    const lineFunction = d3
-      .line()
-      .x((d) => xScale(d.year))
-      .y((d) => yScale(d.population));
+    xAxisGroup.append("g")
+      .attr("transform", `translate(${lineChartSVGWidth / 2}, 40)`)
+      .append("text")
+      .attr("class", "label")
+      .attr("text-anchor", "middle")
+      .text("Year")
 
-    //Add line
-    svg
-      .append("path")
-      .data([formattedStateData])
+    let yAxisGroup = svg.append("g")
+      .attr("transform", `translate(${margin.left}, 0)`)
+      .call(yAxis)
+
+    yAxisGroup.append("g")
+      .attr("transform", `translate(-60, ${lineChartSVGHeight / 2})`)
+      .append("text")
+      .attr("class", "label")
+      .attr("text-anchor", "middle")
+      .attr("transform", "rotate(-90)")
+      .text("Population")
+
+
+    // add line
+    svg.append("path")
+      .datum(formattedStateData)
       .attr("class", "line")
-      .attr("d", lineFunction)
-      .attr(
-        "transform",
-        `translate(${lineChartSVGMargin}, ${lineChartSVGMargin})`
-      );
+      .attr("d", d3.line()
+        .x(d => { return xScale(d.year) })
+        .y(d => { return yScale(d.population) }))
+      .on('mousemove', (event, d) => {
+        console.log(d);
+      });
+
+    //add circles for better visiblity
+    // svg.append("g")
+    //   .selectAll("dot")
+    //   .data(formattedStateData)
+    //   .enter()
+    //   .append("circle")
+    //   .attr("cx", d => { return xScale(d.year) })
+    //   .attr("cy", d => { return yScale(d.population) })
+    //   .attr("r", 2)
+    //   .attr("class", "circle")
   }
 
   createBarChart(data) {

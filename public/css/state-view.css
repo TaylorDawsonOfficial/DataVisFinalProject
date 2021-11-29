@@ -12,7 +12,7 @@ body {
   grid-template-areas:
     "navbar navbar"
     "main-graph side-graphs";
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 3fr 2fr;
   grid-template-rows: 1fr 14fr;
   height: 100vh;
 }
@@ -68,8 +68,14 @@ nav {
   padding: 0.5em;
 }
 
-text {
+.visualization text {
   font-size: 12pt;
+}
+
+.label {
+  fill: black;
+  font-weight: bold;
+  font-size: 10pt;
 }
 
 .county {
@@ -105,6 +111,12 @@ text {
   padding: 1em;
   margin: 0 auto;
   width: 90%;
+}
+
+.line {
+  fill: none;
+  stroke: black;
+  stroke-width: 1;
 }
 
 .graph2 {
