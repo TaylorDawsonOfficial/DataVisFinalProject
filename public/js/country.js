@@ -80,7 +80,7 @@ class Country {
       })
       .on("click", (event, d) => {
         let newState = d.properties.name;
-        window.location.href = `state / ${newState.replace(" ", "-")} `;
+        window.location.href = `state/${newState.replace(" ", "-")}`;
       })
       .on("mouseover", function (event, d) {
         d3.select(this).style("fill-opacity", 0.5);
