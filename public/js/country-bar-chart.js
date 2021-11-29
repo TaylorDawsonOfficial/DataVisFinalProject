@@ -1,10 +1,11 @@
 class CountryBarChart {
-  constructor(data) {
+  constructor(data, selectedData) {
     this.margin = { top: 20, right: 20, bottom: 95, left: 95 };
     this.width = 860;
     this.height = 500;
     this.data = data;
     this.sortByString = "state";
+    this.selectedData = selectedData;
 
     this.setupSvg();
 
@@ -40,9 +41,21 @@ class CountryBarChart {
     this.svg.selectAll(".bar")
       .transition().duration(800)
       .attr("x", d => { return this.xScale(d.state) })
-      .attr("y", d => { return this.yScale(d.population) })
-      .attr("height", d => { return this.height - this.margin.bottom - this.yScale(d.population) });
+      .attr("y", d => { return this.yScale(Math.max(0, d.population)) })
+      .attr("height", d => {
+        let atZero = this.height - this.yScale(0) - this.margin.bottom;
+        let normal = this.height - this.yScale(d.population) - this.margin.bottom;
+        return Math.abs(normal - atZero);
+      })
+      .attr("class", d => { return (d.population < 0 ? "bar bar-negative" : "bar bar-positive"); });
 
+    this.svg.select(".zero-y-axis")
+      .transition().duration(800)
+      .selectAll("line")
+      .attr("y1", this.yScale(0))
+      .attr("y2", this.yScale(0))
+      .attr("x1", this.margin.left)
+      .attr("x2", this.width - this.margin.right);
   }
 
   sortByPopulation() {
@@ -64,12 +77,43 @@ class CountryBarChart {
     this.svg.selectAll(".bar")
       .transition().duration(800)
       .attr("x", d => { return this.xScale(d.state) })
-      .attr("y", d => { return this.yScale(d.population) })
-      .attr("height", d => { return this.height - this.margin.bottom - this.yScale(d.population) });
+      .attr("y", d => { return this.yScale(Math.max(0, d.population)) })
+      .attr("height", d => {
+        let atZero = this.height - this.yScale(0) - this.margin.bottom;
+        let normal = this.height - this.yScale(d.population) - this.margin.bottom;
+        return Math.abs(normal - atZero);
+      })
+      .attr("class", d => { return (d.population < 0 ? "bar bar-negative" : "bar bar-positive"); });
 
+    this.svg.select(".zero-y-axis")
+      .transition().duration(800)
+      .selectAll("line")
+      .attr("y1", this.yScale(0))
+      .attr("y2", this.yScale(0))
+      .attr("x1", this.margin.left)
+      .attr("x2", this.width - this.margin.right);
+  }
+
+  getHelpText(d) {
+    if (this.selectedData === "total-pop") {
+      return `${d.state} Population: ${d.population.toLocaleString("en-US")}`;
+    }
+    else if (this.selectedData === "square-mile") {
+      return `${d.state} Population Per</br>Square Mile: ${d.population.toFixed(2).toLocaleString("en-US")}`
+    }
+    else if (this.selectedData === "pop-increase") {
+      return `${d.state} Population Increase</br>Since 1969: ${d.population.toFixed(2).toLocaleString("en-US")}%`
+    }
+  }
+
+  setSelectedData(selectedData) {
+    this.selectedData = selectedData;
   }
 
   setupSvg() {
+    // Inspiration for the hoverable tooltip was gathered from here: https://bl.ocks.org/d3noob/a22c42db65eb00d4e369
+    let tooltip = d3.select(".tooltip");
+
     this.svg = d3
       .select(".visualization")
       .append("svg")
@@ -85,13 +129,27 @@ class CountryBarChart {
       .range([this.margin.left, this.width - this.margin.right])
       .padding(0.2);
 
+    let minVal = d3.min(this.data, d => { return d.population });
+    if (minVal > 0) {
+      minVal = 0;
+    }
+
     this.yScale = d3.scaleLinear()
       .domain(
-        [0, d3.max(this.data, d => { return d.population })])
+        [minVal, d3.max(this.data, d => { return d.population })])
       .range([this.height - this.margin.bottom, this.margin.top]);
 
     this.xAxis = d3.axisBottom(this.xScale);
     this.yAxis = d3.axisLeft(this.yScale);
+
+
+    this.svg.append("g")
+      .attr("class", "zero-y-axis")
+      .append("line")
+      .attr("y1", this.yScale(0))
+      .attr("y2", this.yScale(0))
+      .attr("x1", this.margin.left)
+      .attr("x2", this.width - this.margin.right);
 
     this.xAxisGroup = this.svg.append("g")
       .attr("class", "x-axis")
@@ -115,39 +173,50 @@ class CountryBarChart {
       .attr("transform", "rotate(-90)")
       .text("Population")
 
+    let self = this;
     this.svg.append("g")
       .selectAll(".bar")
       .data(this.data)
       .enter().append("rect")
-      .attr("class", "bar")
-      .on('mouseover', (e, d, i) => {
-        console.log(d);
+      .on('mouseover', function (event, d) {
+        d3.select(this).style("opacity", 0.5);
+        tooltip
+          .html(self.getHelpText(d))
+          .attr("class", "tooltip visible")
+          .style("left", `${event.x + 15}px`)
+          .style("top", `${event.y}px`);
+      })
+      .on('mouseout', function (event, d) {
+        d3.select(this).style("opacity", 1);
+        tooltip.attr("class", "tooltip invisible");
       })
       .attr("x", d => { return this.xScale(d.state) })
-      .attr("y", d => { return this.yScale(d.population) })
+      .attr("y", d => { return this.yScale(Math.max(0, d.population)) })
       .attr("width", this.xScale.bandwidth())
-      .attr("height", d => { return this.height - this.margin.bottom - this.yScale(d.population) })
+      .attr("height", d => {
+        let atZero = this.height - this.yScale(0) - this.margin.bottom;
+        let normal = this.height - this.yScale(d.population) - this.margin.bottom;
+        return Math.abs(normal - atZero);
+      })
+      .attr("class", d => { return (d.population < 0 ? "bar bar-negative" : "bar bar-positive"); });
   }
 
   assignPopData(newData) {
+    // inspiration from here: https://bl.ocks.org/martinjc/f2241a09bd18caad10fc7249ca5d7816
+
     this.data = newData;
 
-    // inspiration from here: https://bl.ocks.org/martinjc/f2241a09bd18caad10fc7249ca5d7816
+    let minVal = d3.min(this.data, d => { return d.population });
+    if (minVal > 0) {
+      minVal = 0;
+    }
+
     let t = d3.transition().duration(800);
-
-    this.yScale.domain([0, d3.max(newData, d => { return d.population })]);
-
+    this.yScale.domain([minVal, d3.max(newData, d => { return d.population })]);
     this.svg.selectAll(".bar")
       .data(newData)
       .join(
-        enter => {
-          return enter.append("rect")
-            .attr("class", "bar")
-            .attr("x", d => { return this.xScale(d.state) })
-            .attr("width", this.xScale.bandwidth())
-            .attr("y", this.height)
-            .attr("height", 0);
-        },
+        enter => { },
         update => {
           this.sortBy();
           this.yAxisGroup
