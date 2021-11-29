@@ -20,8 +20,8 @@ class State {
     this.minPopPercent;
     this.maxPopPercent;
     this.stateSVG;
-    this.legendWidth = 400;
-    this.legendHeight = 20;
+    this.legendWidth = 800;
+    this.legendHeight = 25;
 
     let key = Object.keys(topologyData.objects)[0];
     let state = topojson.feature(topologyData, topologyData.objects[key]);
@@ -33,10 +33,10 @@ class State {
     this.assignPopData(countyData, stateData[dataStartYear]);
 
     //Create line chart for state's population from 1969
-    this.createLineChart(stateData);
+    //this.createLineChart(stateData);
 
     //Chart 2
-    this.createBarChart(countyData);
+    //this.createBarChart(countyData);
 
     //Chart 3
   }
@@ -48,8 +48,6 @@ class State {
   setupSvg(state, countyPopData, totalStatePopulation) {
     this.stateSVG = d3
       .select(".visualization")
-      .append("div")
-      .attr("class", "map_container")
       .append("svg")
       .attr("x", 0)
       .attr("y", 0)
@@ -59,10 +57,15 @@ class State {
       .attr("viewBox", `0 0 ${this.width} ${this.height}`)
       .attr("preserveAspectRatio", "xMidYMid meet");
 
-    // this.stateSVG = d3
-    //   .select(".visualization")
-    //   .append("div")
-    //   .attr("class", "legend_container");
+    // have to do a separate svg on the states because the states are all different sizes and can overlap with it
+    this.legendSVG = d3
+      .select(".visualization")
+      .append("svg")
+      .attr("x", 0)
+      .attr("y", 0)
+      .attr("id", "svg-state-map-legend")
+      .attr("viewBox", `0 0 ${this.width} ${this.legendHeight + 20}`)
+      .attr("preserveAspectRatio", "xMidYMid meet")
 
     // for some reason Alaska is weird and looks small with geoMercator
     let projection;
@@ -160,14 +163,14 @@ class State {
       .axisBottom(legendAxisScale)
       .tickFormat((x) => x.toFixed(2) + "%");
 
-    let legend = this.stateSVG
+    let legend = this.legendSVG
       .selectAll(".legend")
       .data(this.mapColors)
       .enter()
       .append("g")
       .attr(
         "transform",
-        `translate(${this.width - this.legendWidth - 15},${this.height - 140})`
+        `translate(75,0)`
       );
 
     legend
@@ -177,12 +180,12 @@ class State {
       .style("fill", (d) => d)
       .attr("x", (d, i) => (this.legendWidth / this.mapColors.length) * i);
 
-    this.stateSVG
+    this.legendSVG
       .append("g")
       .attr("class", "axis axis__legend")
       .attr(
         "transform",
-        `translate(${this.width - this.legendWidth - 15},${this.height - 120})`
+        `translate(75, ${this.legendHeight})`
       )
       .call(legendAxis);
   }
@@ -261,8 +264,7 @@ class State {
       .attr("class", "axis x_axis")
       .attr(
         "transform",
-        `translate(${lineChartSVGMargin}, ${
-          lineChartSVGMargin + lineChartHeight
+        `translate(${lineChartSVGMargin}, ${lineChartSVGMargin + lineChartHeight
         })`
       )
       .call(d3.axisBottom(xScale).tickFormat(d3.format("d")));
