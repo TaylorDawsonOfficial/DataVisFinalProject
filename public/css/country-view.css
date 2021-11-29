@@ -57,12 +57,26 @@ body {
 }
 
 .bar {
-  fill: lightblue;
   stroke: black;
+}
+
+.bar-positive {
+  fill: lightblue;
+}
+
+.bar-negative {
+  fill: red;
 }
 
 text {
   font-size: 9pt;
+}
+
+.zero-y-axis {
+  fill: none;
+  stroke: black;
+  stroke-width: 2;
+  shape-rendering: crispEdges;
 }
 
 /* sytling for the bottom slider section */

@@ -6,14 +6,12 @@ class Data {
     this.populationList = {};
 
     this.landAreaPopulationList = {};
+    this.percentIncreaseList = {};
 
     this.state;
     this.country;
     this.countryBarChart;
     this.selectedChart;
-
-    //Set selected radio button to default, which is percentage of total population
-    document.querySelector("#radio_3").checked = true;
 
     //Get the current selected radio button
     this.selectedData = document.querySelector(
@@ -60,6 +58,7 @@ class Data {
           this.populationData[year.year] = {};
           this.populationList[year.year] = [];
           this.landAreaPopulationList[year.year] = [];
+          this.percentIncreaseList[year.year] = [];
         }
 
         //Loop through each state to get population data
@@ -69,11 +68,8 @@ class Data {
           for (let year of state.years) {
             let percentIncrease = 1;
             if (+year.year > 1969) {
-              percentIncrease = (
-                (year.population /
-                  this.populationData[1969][stateName].population) *
-                100
-              ).toFixed(2);
+              let increase = year.population - this.populationData[1969][stateName].population;
+              percentIncrease = (increase / this.populationData[1969][stateName].population * 100).toFixed(2);
             }
 
             this.populationData[year.year][stateName] = {
@@ -89,18 +85,21 @@ class Data {
               state: state.state,
               population: year.population / this.landAreaData[state.state],
             });
+
+            this.percentIncreaseList[year.year].push({
+              state: state.state,
+              population: +percentIncrease
+            })
           }
         }
 
-        let smallest_pop = Number.MAX_SAFE_INTEGER;
-        let largest_pop = Number.MIN_SAFE_INTEGER;
-        let smallest_percent_increase = Number.MAX_SAFE_INTEGER;
-        let largest_percent_increase = Number.MIN_SAFE_INTEGER;
-
-        const temp = this;
-
         //Do one final loop through and calculate population total for each year
         Object.entries(this.populationData).forEach(function (year) {
+          let smallest_pop = Number.MAX_SAFE_INTEGER;
+          let largest_pop = Number.MIN_SAFE_INTEGER;
+          let smallest_percent_increase = Number.MAX_SAFE_INTEGER;
+          let largest_percent_increase = Number.MIN_SAFE_INTEGER;
+
           let total = 0;
           for (let population of Object.entries(year[1])) {
             const newPop = population[1].population;
@@ -151,25 +150,26 @@ class Data {
 
     if (this.selectedData === "total-pop") {
       this.countryBarChart.assignPopData(this.populationList[slider.value]);
-      this.country.assignPopData(this.populationList[slider.value]);
-    } else if (this.selectedData === "square-mile") {
-      this.countryBarChart.assignPopData(
-        this.landAreaPopulationList[slider.value]
-      );
+      this.country.assignPopData(this.populationData[slider.value]);
+    }
+    else if (this.selectedData === "square-mile") {
+      this.countryBarChart.assignPopData(this.landAreaPopulationList[slider.value]);
       this.country.assignPopData(this.landAreaPopulationList[slider.value]);
-    } else {
-      //Covers percentage of total population and population increase since 1969
+    }
+    else if (this.selectedData === "pop-increase") {
+      this.countryBarChart.assignPopData(this.percentIncreaseList[slider.value]);
       this.country.assignPopData(this.populationData[slider.value]);
     }
   }
 
   updateLegend() {
     if (this.selectedData === "total-pop") {
-      this.country.updateLegend(this.populationList[slider.value]);
-    } else if (this.selectedData === "square-mile") {
+      this.country.updateLegend(this.populationData[slider.value]);
+    }
+    else if (this.selectedData === "square-mile") {
       this.country.updateLegend(this.landAreaPopulationList[slider.value]);
-    } else {
-      //Covers percentage of total population and population increase since 1969
+    }
+    else if (this.selectedData === "pop-increase") {
       this.country.updateLegend(this.populationData[slider.value]);
     }
   }
@@ -190,8 +190,8 @@ slider.oninput = function () {
   Vis.assignPopData();
 };
 
-function initializeSlider() {
-  slider.min = 1969;
+function initializeSlider(minYear) {
+  slider.min = minYear;
   slider.max = 2019;
   slider.value = slider.min;
   output.innerHTML = slider.value;
@@ -201,7 +201,7 @@ function initializeSlider() {
   Sets up values on HTML page after page has loaded
 */
 $(document).ready(function () {
-  initializeSlider();
+  initializeSlider(1969);
   Vis = new Data();
 
   // set navbar link to active
@@ -225,6 +225,11 @@ $(document).ready(function () {
   // watch the button change
   $("#radio-buttons").change(() => {
     Vis.selectedData = $("input[name='radio_buttons']:checked").val();
+    if (Vis.selectedData === "pop-increase") {
+      initializeSlider(1970);
+    } else {
+      initializeSlider(1969);
+    }
     Vis.assignPopData();
   });
 });

@@ -40,9 +40,21 @@ class CountryBarChart {
     this.svg.selectAll(".bar")
       .transition().duration(800)
       .attr("x", d => { return this.xScale(d.state) })
-      .attr("y", d => { return this.yScale(d.population) })
-      .attr("height", d => { return this.height - this.margin.bottom - this.yScale(d.population) });
+      .attr("y", d => { return this.yScale(Math.max(0, d.population)) })
+      .attr("height", d => {
+        let atZero = this.height - this.yScale(0) - this.margin.bottom;
+        let normal = this.height - this.yScale(d.population) - this.margin.bottom;
+        return Math.abs(normal - atZero);
+      })
+      .attr("class", d => { return (d.population < 0 ? "bar bar-negative" : "bar bar-positive"); });
 
+    this.svg.select(".zero-y-axis")
+      .transition().duration(800)
+      .selectAll("line")
+      .attr("y1", this.yScale(0))
+      .attr("y2", this.yScale(0))
+      .attr("x1", this.margin.left)
+      .attr("x2", this.width - this.margin.right);
   }
 
   sortByPopulation() {
@@ -64,9 +76,21 @@ class CountryBarChart {
     this.svg.selectAll(".bar")
       .transition().duration(800)
       .attr("x", d => { return this.xScale(d.state) })
-      .attr("y", d => { return this.yScale(d.population) })
-      .attr("height", d => { return this.height - this.margin.bottom - this.yScale(d.population) });
+      .attr("y", d => { return this.yScale(Math.max(0, d.population)) })
+      .attr("height", d => {
+        let atZero = this.height - this.yScale(0) - this.margin.bottom;
+        let normal = this.height - this.yScale(d.population) - this.margin.bottom;
+        return Math.abs(normal - atZero);
+      })
+      .attr("class", d => { return (d.population < 0 ? "bar bar-negative" : "bar bar-positive"); });
 
+    this.svg.select(".zero-y-axis")
+      .transition().duration(800)
+      .selectAll("line")
+      .attr("y1", this.yScale(0))
+      .attr("y2", this.yScale(0))
+      .attr("x1", this.margin.left)
+      .attr("x2", this.width - this.margin.right);
   }
 
   setupSvg() {
@@ -85,13 +109,27 @@ class CountryBarChart {
       .range([this.margin.left, this.width - this.margin.right])
       .padding(0.2);
 
+    let minVal = d3.min(this.data, d => { return d.population });
+    if (minVal > 0) {
+      minVal = 0;
+    }
+
     this.yScale = d3.scaleLinear()
       .domain(
-        [0, d3.max(this.data, d => { return d.population })])
+        [minVal, d3.max(this.data, d => { return d.population })])
       .range([this.height - this.margin.bottom, this.margin.top]);
 
     this.xAxis = d3.axisBottom(this.xScale);
     this.yAxis = d3.axisLeft(this.yScale);
+
+
+    this.svg.append("g")
+      .attr("class", "zero-y-axis")
+      .append("line")
+      .attr("y1", this.yScale(0))
+      .attr("y2", this.yScale(0))
+      .attr("x1", this.margin.left)
+      .attr("x2", this.width - this.margin.right);
 
     this.xAxisGroup = this.svg.append("g")
       .attr("class", "x-axis")
@@ -119,35 +157,36 @@ class CountryBarChart {
       .selectAll(".bar")
       .data(this.data)
       .enter().append("rect")
-      .attr("class", "bar")
       .on('mouseover', (e, d, i) => {
         console.log(d);
       })
       .attr("x", d => { return this.xScale(d.state) })
-      .attr("y", d => { return this.yScale(d.population) })
+      .attr("y", d => { return this.yScale(Math.max(0, d.population)) })
       .attr("width", this.xScale.bandwidth())
-      .attr("height", d => { return this.height - this.margin.bottom - this.yScale(d.population) })
+      .attr("height", d => {
+        let atZero = this.height - this.yScale(0) - this.margin.bottom;
+        let normal = this.height - this.yScale(d.population) - this.margin.bottom;
+        return Math.abs(normal - atZero);
+      })
+      .attr("class", d => { return (d.population < 0 ? "bar bar-negative" : "bar bar-positive"); });
   }
 
   assignPopData(newData) {
+    // inspiration from here: https://bl.ocks.org/martinjc/f2241a09bd18caad10fc7249ca5d7816
+
     this.data = newData;
 
-    // inspiration from here: https://bl.ocks.org/martinjc/f2241a09bd18caad10fc7249ca5d7816
+    let minVal = d3.min(this.data, d => { return d.population });
+    if (minVal > 0) {
+      minVal = 0;
+    }
+
     let t = d3.transition().duration(800);
-
-    this.yScale.domain([0, d3.max(newData, d => { return d.population })]);
-
+    this.yScale.domain([minVal, d3.max(newData, d => { return d.population })]);
     this.svg.selectAll(".bar")
       .data(newData)
       .join(
-        enter => {
-          return enter.append("rect")
-            .attr("class", "bar")
-            .attr("x", d => { return this.xScale(d.state) })
-            .attr("width", this.xScale.bandwidth())
-            .attr("y", this.height)
-            .attr("height", 0);
-        },
+        enter => { },
         update => {
           this.sortBy();
           this.yAxisGroup
