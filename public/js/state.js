@@ -1,5 +1,5 @@
 class State {
-  constructor(stateName, topologyData, stateData, countyData) {
+  constructor(stateName, topologyData, stateData, dataStartYear, countyData) {
     this.stateName = stateName;
     this.width = 960;
     this.height = 500;
@@ -25,9 +25,20 @@ class State {
 
     let key = Object.keys(topologyData.objects)[0];
     let state = topojson.feature(topologyData, topologyData.objects[key]);
-    this.setupSvg(state, countyData, stateData);
 
-    this.assignPopData(countyData, stateData);
+    //Create SVG for state map display
+    this.setupSvg(state, countyData, stateData[dataStartYear]);
+
+    //Assign population data to state map
+    this.assignPopData(countyData, stateData[dataStartYear]);
+
+    //Create line chart for state's population from 1969
+    this.createLineChart(stateData);
+
+    //Chart 2
+    this.createBarChart(countyData);
+
+    //Chart 3
   }
 
   fillCounty(county, population_percentage) {
@@ -185,7 +196,7 @@ class State {
 
     Object.entries(county_data).forEach(function (data) {
       if (data[0] !== "lowest_population" && data[0] !== "highest_population") {
-        const pop_percentage = (data[1] / state_population) * 100;
+        const pop_percentage = (data[1].population / state_population) * 100;
 
         const countySelector = `county__${data[0]}`;
 
@@ -194,5 +205,206 @@ class State {
         );
       }
     });
+  }
+
+  formatPopulationOnAxis(value) {
+    return d3.format("~s")(value);
+  }
+
+  createLineChart(stateData) {
+    const lineChartSVGHeight = 250;
+    const lineChartSVGWidth = 500;
+    const lineChartSVGMargin = 40;
+
+    const lineChartHeight = lineChartSVGHeight - 2 * lineChartSVGMargin;
+    const lineChartWidth = lineChartSVGWidth - 2 * lineChartSVGMargin;
+
+    d3.select(".graph1")
+      .append("svg")
+      .attr("width", lineChartSVGWidth)
+      .attr("height", lineChartSVGHeight)
+      .attr("class", "line_chart_svg")
+      .append("g")
+      .attr(
+        "transform",
+        `translate(${lineChartSVGMargin}, ${lineChartSVGMargin})`
+      );
+
+    let svg = d3.select(".line_chart_svg");
+
+    //Title
+    svg
+      .append("text")
+      .attr("class", "title")
+      .attr("x", lineChartWidth / 2 + lineChartSVGMargin)
+      .attr("y", lineChartSVGMargin / 2)
+      .attr("text-anchor", "middle")
+      .text("Total State Population from 1969");
+
+    let formattedStateData = [];
+    Object.entries(stateData).forEach((d) => {
+      formattedStateData.push({ year: d[0], population: d[1] });
+    });
+
+    console.log(formattedStateData);
+
+    // console.log(d3.min(stateData));
+
+    //Create and add axes
+    let xScale = d3
+      .scaleLinear()
+      .domain([1969, 2019])
+      .range([0, lineChartWidth]);
+
+    svg
+      .append("g")
+      .attr("class", "axis x_axis")
+      .attr(
+        "transform",
+        `translate(${lineChartSVGMargin}, ${
+          lineChartSVGMargin + lineChartHeight
+        })`
+      )
+      .call(d3.axisBottom(xScale).tickFormat(d3.format("d")));
+
+    let yScale = d3
+      .scaleLinear()
+      .domain([
+        d3.min(formattedStateData, (d) => d.population),
+        d3.max(formattedStateData, (d) => d.population),
+      ])
+      .range([lineChartHeight, 0]);
+
+    svg
+      .append("g")
+      .attr("class", "axis y_axis")
+      .attr(
+        "transform",
+        `translate(${lineChartSVGMargin}, ${lineChartSVGMargin})`
+      )
+      .call(
+        d3.axisLeft(yScale).tickFormat((d) => this.formatPopulationOnAxis(d))
+      );
+
+    //Axis labels
+
+    //Function to draw line
+    const lineFunction = d3
+      .line()
+      .x((d) => xScale(d.year))
+      .y((d) => yScale(d.population));
+
+    //Add line
+    svg
+      .append("path")
+      .data([formattedStateData])
+      .attr("class", "line")
+      .attr("d", lineFunction)
+      .attr(
+        "transform",
+        `translate(${lineChartSVGMargin}, ${lineChartSVGMargin})`
+      );
+  }
+
+  createBarChart(data) {
+    console.log("SP", data);
+
+    const barChartSVGHeight = 250;
+    const barChartSVGWidth = 500;
+    const barChartSVGMargin = 40;
+
+    const barChartHeight = barChartSVGHeight - 2 * barChartSVGMargin;
+    const barChartWidth = barChartSVGWidth - 2 * barChartSVGMargin;
+
+    d3.select(".graph2")
+      .append("svg")
+      .attr("width", barChartSVGWidth)
+      .attr("height", barChartSVGHeight)
+      .attr("class", "bar_chart_svg")
+      .append("g")
+      .attr(
+        "transform",
+        `translate(${barChartSVGMargin}, ${barChartSVGMargin})`
+      );
+
+    let svg = d3.select(".bar_chart_svg");
+
+    svg
+      .append("text")
+      .attr("class", "title")
+      .attr("x", barChartSVGWidth / 2 + barChartSVGMargin)
+      .attr("y", barChartSVGMargin / 2)
+      .attr("text-anchor", "middle")
+      .text("County Bar Chart");
+
+    let barChartData = [];
+
+    Object.entries(data).forEach((d) => {
+      if (d[0] !== "highest_population" && d[0] !== "lowest_population") {
+        if (d[1].name.substring(d[1].name.length - 6) === "County") {
+          barChartData.push({
+            name: d[1].name.substring(0, d[1].name.length - 7),
+            population: d[1].population,
+          });
+        } else {
+          barChartData.push({ name: d[1].name, population: d[1].population });
+        }
+      }
+    });
+
+    //Create and add axes
+    let xScale = d3
+      .scaleBand()
+      .domain(barChartData.map((d) => d.name))
+      .range([0, barChartWidth]);
+
+    console.log(barChartData.map((d) => d.name));
+
+    svg
+      .append("g")
+      .attr("class", "axis x_axis")
+      .attr(
+        "transform",
+        `translate(${barChartSVGMargin}, ${barChartSVGMargin + barChartHeight})`
+      )
+      .call(d3.axisBottom(xScale))
+      .selectAll("text")
+      .style("text-anchor", "end")
+      .attr("dx", "-.8em")
+      .attr("dy", ".15em")
+      .attr("transform", "rotate(-65)");
+
+    let yScale = d3
+      .scaleLinear()
+      .domain([
+        d3.min(barChartData, (d) => d.population),
+        d3.max(barChartData, (d) => d.population),
+      ])
+      .range([barChartHeight, 0]);
+
+    svg
+      .append("g")
+      .attr("class", "axis y_axis")
+      .attr(
+        "transform",
+        `translate(${barChartSVGMargin}, ${barChartSVGMargin})`
+      )
+      .call(
+        d3.axisLeft(yScale).tickFormat((d) => this.formatPopulationOnAxis(d))
+      );
+
+    //Add bars to chart
+    const bars = svg.selectAll().data(barChartData).enter();
+    bars
+      .append("rect")
+      .attr("class", "bar")
+      .attr("x", (d) => xScale(d.name))
+      .attr("y", (d) => yScale(d.population))
+      .attr(
+        "transform",
+        `translate(${barChartSVGMargin}, ${barChartSVGMargin})`
+      )
+      .attr("height", (d) => barChartHeight - yScale(d.population))
+      .attr("width", xScale.bandwidth());
   }
 }
