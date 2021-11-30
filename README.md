@@ -31,6 +31,8 @@ Model State Population over ~50 years.
     * Contains geo data for each individual state. Retrieved from here: https://github.com/deldersveld/topojson/tree/master/countries/us-states
 * state-land-area
     * Contains the square mile area for each state. Retrieved from here: https://worldpopulationreview.com/state-rankings/states-by-area
+* county-land-area
+    * Contains the square mile area for each county. Retrieved from here: https://www.census.gov/library/publications/2011/compendia/usa-counties-2011.html#LND
 * popest-annual-historical.csv
     * contains state population data from 1969-2009
 * popest-annual.csv

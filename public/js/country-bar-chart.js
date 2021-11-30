@@ -16,82 +16,56 @@ class CountryBarChart {
   }
 
   sortBy() {
+    let sortedData;
     if (this.sortByString === "state") {
-      this.sortByState();
+      sortedData = this.sortByState();
     } else if (this.sortByString === "population") {
-      this.sortByPopulation();
+      sortedData = this.sortByPopulation();
     }
+
+    this.xScale.domain(sortedData.map(d => { return d.state }))
+
+    d3.select(".x-axis")
+      .transition().duration(800)
+      .call(this.xAxis)
+      .selectAll("text")
+      .style("text-anchor", "end")
+      .attr("dx", "-.9em")
+      .attr("dy", ".25em")
+      .attr("transform", "rotate(-65)")
+
+    this.svg.selectAll(".bar")
+      .transition().duration(800)
+      .attr("x", d => { return this.xScale(d.state) })
+      .attr("y", d => { return this.yScale(Math.max(0, d.population)) })
+      .attr("height", d => {
+        let atZero = this.height - this.yScale(0) - this.margin.bottom;
+        let normal = this.height - this.yScale(d.population) - this.margin.bottom;
+        return Math.abs(normal - atZero);
+      })
+      .attr("class", d => { return (d.population < 0 ? "bar bar-negative" : "bar bar-positive"); });
+
+    this.svg.select(".zero-y-axis")
+      .transition().duration(800)
+      .selectAll("line")
+      .attr("y1", this.yScale(0))
+      .attr("y2", this.yScale(0))
+      .attr("x1", this.margin.left)
+      .attr("x2", this.width - this.margin.right);
   }
 
   sortByState() {
     let sortedData = [...this.data].sort((a, b) => {
       return d3.ascending(a.state, b.state);
     })
-    this.xScale.domain(sortedData.map(d => { return d.state }))
-
-    d3.select(".x-axis")
-      .transition().duration(800)
-      .call(this.xAxis)
-      .selectAll("text")
-      .style("text-anchor", "end")
-      .attr("dx", "-.9em")
-      .attr("dy", ".25em")
-      .attr("transform", "rotate(-65)")
-
-    this.svg.selectAll(".bar")
-      .transition().duration(800)
-      .attr("x", d => { return this.xScale(d.state) })
-      .attr("y", d => { return this.yScale(Math.max(0, d.population)) })
-      .attr("height", d => {
-        let atZero = this.height - this.yScale(0) - this.margin.bottom;
-        let normal = this.height - this.yScale(d.population) - this.margin.bottom;
-        return Math.abs(normal - atZero);
-      })
-      .attr("class", d => { return (d.population < 0 ? "bar bar-negative" : "bar bar-positive"); });
-
-    this.svg.select(".zero-y-axis")
-      .transition().duration(800)
-      .selectAll("line")
-      .attr("y1", this.yScale(0))
-      .attr("y2", this.yScale(0))
-      .attr("x1", this.margin.left)
-      .attr("x2", this.width - this.margin.right);
+    return sortedData;
   }
 
   sortByPopulation() {
     let sortedData = [...this.data].sort((a, b) => {
       return d3.descending(a.population, b.population);
     })
-
-    this.xScale.domain(sortedData.map(d => { return d.state }))
-
-    d3.select(".x-axis")
-      .transition().duration(800)
-      .call(this.xAxis)
-      .selectAll("text")
-      .style("text-anchor", "end")
-      .attr("dx", "-.9em")
-      .attr("dy", ".25em")
-      .attr("transform", "rotate(-65)")
-
-    this.svg.selectAll(".bar")
-      .transition().duration(800)
-      .attr("x", d => { return this.xScale(d.state) })
-      .attr("y", d => { return this.yScale(Math.max(0, d.population)) })
-      .attr("height", d => {
-        let atZero = this.height - this.yScale(0) - this.margin.bottom;
-        let normal = this.height - this.yScale(d.population) - this.margin.bottom;
-        return Math.abs(normal - atZero);
-      })
-      .attr("class", d => { return (d.population < 0 ? "bar bar-negative" : "bar bar-positive"); });
-
-    this.svg.select(".zero-y-axis")
-      .transition().duration(800)
-      .selectAll("line")
-      .attr("y1", this.yScale(0))
-      .attr("y2", this.yScale(0))
-      .attr("x1", this.margin.left)
-      .attr("x2", this.width - this.margin.right);
+    return sortedData;
   }
 
   getHelpText(d) {

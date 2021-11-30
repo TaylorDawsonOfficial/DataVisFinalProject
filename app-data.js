@@ -6,6 +6,7 @@ const {
   getCountiesByState,
   getStateMapPath,
   getStateLandArea,
+  getCountyLandArea
 } = require("./db");
 
 const router = express.Router();
@@ -45,5 +46,11 @@ router.get("/state-land-area", (req, res) => {
     res.send(data);
   });
 });
+
+router.get("/county-land-area/:state", (req, res) => {
+  getCountyLandArea(req.params.state).then((data) => {
+    res.send(data);
+  });
+})
 
 module.exports = router;

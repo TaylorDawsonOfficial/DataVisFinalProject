@@ -4,6 +4,7 @@ class Data {
 
     this.countyPopulation = {};
     this.stateHistoryPopulation = {};
+    this.countyLandArea;
     this.topologyData;
     this.startYear = 2010; //The year th at the slider starts at
 
@@ -12,25 +13,9 @@ class Data {
     this.selectedData = "total-pop";
 
     // will fire when everything has loaded. This is the main point of entry
-    $.when(this.loadCounties(), this.loadStatePop(), this.loadMap()).done(
+    $.when(this.loadCounties(), this.loadStatePop(), this.loadMap(), this.loadLandArea()).done(
       () => {
-        console.log("done loading everything");
-
-        console.log(
-          "countyPopulation contains every county and the population between 2010-2019"
-        );
-        //use the property fips to match up with the correct county on the map. on the map data it is under GEOID
-        console.log(this.countyPopulation);
-
-        console.log(
-          "stateHistroyPopulation contains the population of the state form 1969-2019"
-        );
-        console.log(this.stateHistoryPopulation);
-
-        console.log("topologyData contains the info to draw the map");
-
-        console.log(this.stateHistoryPopulation);
-
+        console.log('county land area data is here:', this.countyLandArea);
         this.stateVis = new State(
           this.stateName,
           this.topologyData,
@@ -85,6 +70,16 @@ class Data {
                 d.population;
           });
         });
+      },
+    });
+  }
+
+  loadLandArea() {
+    return $.ajax({
+      method: "get",
+      url: `/data/county-land-area/${this.stateName}`,
+      success: (data) => {
+        this.countyLandArea = data;
       },
     });
   }

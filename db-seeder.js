@@ -8,6 +8,60 @@ const stateMapPathsCollection = "state-map-paths";
 const stateCollection = "states";
 const countyCollection = "counties";
 const stateLandCollection = "state-land-area";
+const countyLandCollection = "county-land-area";
+
+const stateCode = {
+  "AL": "Alabama",
+  "AK": "Alaska",
+  "AZ": "Arizona",
+  "AR": "Arkansas",
+  "CA": "California",
+  "CO": "Colorado",
+  "CT": "Connecticut",
+  "DE": "Delaware",
+  "FL": "Florida",
+  "GA": "Georgia",
+  "HI": "Hawaii",
+  "ID": "Idaho",
+  "IL": "Illinois",
+  "IN": "Indiana",
+  "IA": "Iowa",
+  "KS": "Kansas",
+  "KY": "Kentucky",
+  "LA": "Louisiana",
+  "ME": "Maine",
+  "MD": "Maryland",
+  "MA": "Massachusetts",
+  "MI": "Michigan",
+  "MN": "Minnesota",
+  "MS": "Mississippi",
+  "MO": "Missouri",
+  "MT": "Montana",
+  "NE": "Nebraska",
+  "NV": "Nevada",
+  "NH": "New Hampshire",
+  "NJ": "New Jersey",
+  "NM": "New Mexico",
+  "NY": "New York",
+  "NC": "North Carolina",
+  "ND": "North Dakota",
+  "OH": "Ohio",
+  "OK": "Oklahoma",
+  "OR": "Oregon",
+  "PA": "Pennsylvania",
+  "RI": "Rhode Island",
+  "SC": "South Carolina",
+  "SD": "South Dakota",
+  "TN": "Tennessee",
+  "TX": "Texas",
+  "UT": "Utah",
+  "VT": "Vermont",
+  "VA": "Virginia",
+  "WA": "Washington",
+  "WV": "West Virginia",
+  "WI": "Wisconsin",
+  "WY": "Wyoming",
+}
 
 stringToNumber = (s) => {
   return parseFloat(s.replace(/,/g, ''));
@@ -75,12 +129,6 @@ cleanCountyFile = (csv) => {
         let county = data[0];
         let state = data[1];
         let fips = data[2];
-
-        // county = county.replace(/ county,/ig, ',');
-        // county = county.replace(/ census area,/ig, ',');
-        // county = county.replace(/ municipality,/ig, ',');
-        // county = county.replace(/ borough,/ig, ',');
-        // county = county.replace(/ parish,/ig, ',');
         county = county.replace(/ city,/ig, ' City,');
 
         if (!(state in results)) {
@@ -165,6 +213,35 @@ loadLandArea = (csv) => {
   return results;
 }
 
+loadCountyLandArea = (csv) => {
+  let results = [];
+  let lines = csv.split("\r\n");
+  let headers;
+  lines.forEach((line, index) => {
+    let data = line.split("|");
+    if (index === 0) {
+      headers = data;
+    }
+    if (data.length > 1) {
+      let areaname = data[0].split(",");
+      // only include counties and states
+      if (areaname.length === 2) {
+        let county = areaname[0];
+        let state = stateCode[areaname[1].trim()];
+        let fips = data[1];
+        let landSize = data[23];
+        results.push({
+          county,
+          state,
+          fips,
+          "square miles": +landSize
+        })
+      }
+    }
+  });
+  return results;
+}
+
 (async () => {
   let db = await MongoClient.connect(url);
   let dbo = db.db(dbName);
@@ -175,6 +252,7 @@ loadLandArea = (csv) => {
   await dbo.collection(countyCollection).drop((e, res) => { });
   await dbo.collection(stateMapPathsCollection).drop((e, res) => { });
   await dbo.collection(stateLandCollection).drop((e, res) => { });
+  await dbo.collection(countyLandCollection).drop((e, res) => { });
   console.log("dropped existing collections");
 
   // add map paths to database
@@ -193,6 +271,12 @@ loadLandArea = (csv) => {
   const stateLandData = loadLandArea(stateLandArea);
   res = await dbo.collection(stateLandCollection).insertMany(stateLandData);
   console.log(`successfully added ${res.insertedCount} documents to ${stateLandCollection}`);
+
+  // add county land area info to database
+  const countyLandArea = fs.readFileSync("./data/county-land-area.csv", "utf-8");
+  const countyLandData = loadCountyLandArea(countyLandArea);
+  res = await dbo.collection(countyLandCollection).insertMany(countyLandData);
+  console.log(`successfully added ${res.insertedCount} documents to ${countyLandCollection}`);
 
   // add state data to database
   const stateOldFile = fs.readFileSync("./data/popest-annual-historical.csv", "utf-8");
