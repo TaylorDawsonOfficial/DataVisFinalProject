@@ -68,15 +68,20 @@ class Data {
           for (let year of state.years) {
             let percentIncrease = 1;
             if (+year.year > 1969) {
-              let increase = year.population - this.populationData[1969][stateName].population;
-              percentIncrease = (increase / this.populationData[1969][stateName].population * 100).toFixed(2);
+              let increase =
+                year.population -
+                this.populationData[1969][stateName].population;
+              percentIncrease = (
+                (increase / this.populationData[1969][stateName].population) *
+                100
+              ).toFixed(2);
             }
 
             // this data feeds into the map
             this.populationData[year.year][stateName] = {
               population: year.population,
               percent_increase: percentIncrease,
-              landarea: year.population / this.landAreaData[state.state]
+              landarea: year.population / this.landAreaData[state.state],
             };
 
             // next three are the data that feeds into the barchart
@@ -92,8 +97,8 @@ class Data {
 
             this.percentIncreaseList[year.year].push({
               state: state.state,
-              population: +percentIncrease
-            })
+              population: +percentIncrease,
+            });
           }
         }
 
@@ -129,7 +134,7 @@ class Data {
             }
 
             if (newLandArea > largest_landarea) {
-              largest_landarea = newLandArea
+              largest_landarea = newLandArea;
             }
 
             if (newLandArea < smallest_landarea) {
@@ -169,12 +174,14 @@ class Data {
 
     if (this.selectedData === "total-pop") {
       this.countryBarChart.assignPopData(this.populationList[slider.value]);
-    }
-    else if (this.selectedData === "square-mile") {
-      this.countryBarChart.assignPopData(this.landAreaPopulationList[slider.value]);
-    }
-    else if (this.selectedData === "pop-increase") {
-      this.countryBarChart.assignPopData(this.percentIncreaseList[slider.value]);
+    } else if (this.selectedData === "square-mile") {
+      this.countryBarChart.assignPopData(
+        this.landAreaPopulationList[slider.value]
+      );
+    } else if (this.selectedData === "pop-increase") {
+      this.countryBarChart.assignPopData(
+        this.percentIncreaseList[slider.value]
+      );
     }
     this.country.assignPopData(this.populationData[slider.value]);
   }

@@ -36,7 +36,7 @@ class Data {
           this.topologyData,
           this.stateHistoryPopulation,
           this.startYear,
-          this.countyPopulation[2010]
+          this.countyPopulation
         );
       }
     );
@@ -145,18 +145,29 @@ slider.oninput = function () {
   Vis.assignPopData();
 };
 
-function initializeSlider() {
-  slider.min = 2010;
+function initializeSlider(minDate) {
+  slider.min = minDate;
   slider.max = 2019;
   slider.value = slider.min;
   output.innerHTML = slider.value;
 }
 
 $(document).ready(function () {
-  initializeSlider();
+  initializeSlider(2010);
   Vis = new Data(STATE);
 
   // set navbar link to active
   $("#dropdown-state").addClass("active");
   $(`#dropdown-${STATE.toLowerCase().replace(" ", "-")}`).addClass("active");
+
+  // watch the button change
+  $("#radio-buttons").change(() => {
+    Vis.selectedData = $("input[name='radio_buttons']:checked").val();
+    if (Vis.selectedData === "pop-increase") {
+      initializeSlider(2011);
+    } else {
+      initializeSlider(2010);
+    }
+    Vis.assignPopData();
+  });
 });

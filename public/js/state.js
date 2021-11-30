@@ -1,6 +1,7 @@
 class State {
   constructor(stateName, topologyData, stateData, dataStartYear, countyData) {
     this.stateName = stateName;
+    this.countyPopulationData = countyData;
     this.width = 960;
     this.height = 500;
     // this.mapColors = ["#f2f0f7", "#cbc9e2", "#9e9ac8", "#756bb1", "#54278f"];
@@ -27,16 +28,23 @@ class State {
     let state = topojson.feature(topologyData, topologyData.objects[key]);
 
     //Create SVG for state map display
-    this.setupSvg(state, countyData, stateData[dataStartYear]);
+    this.setupSvg(
+      state,
+      this.countyPopulationData[dataStartYear],
+      stateData[dataStartYear]
+    );
 
     //Assign population data to state map
-    this.assignPopData(countyData, stateData[dataStartYear]);
+    this.assignPopData(
+      this.countyPopulationData[dataStartYear],
+      stateData[dataStartYear]
+    );
 
     //Create line chart for state's population from 1969
     this.createLineChart(stateData);
 
     //Chart 2
-    this.createBarChart(countyData);
+    // this.createBarChart(countyData);
 
     //Chart 3
   }
@@ -65,7 +73,7 @@ class State {
       .attr("y", 0)
       .attr("id", "svg-state-map-legend")
       .attr("viewBox", `0 0 ${this.width} ${this.legendHeight + 30}`)
-      .attr("preserveAspectRatio", "xMidYMid meet")
+      .attr("preserveAspectRatio", "xMidYMid meet");
 
     // for some reason Alaska is weird and looks small with geoMercator
     let projection;
@@ -107,6 +115,8 @@ class State {
       }) // this GEOID maps back to the fips code in the countyPopulation data. You can use it as a key to get the population data
       .on("mouseover", (e, d) => {
         console.log(d);
+        //Display area chart for selected county
+        this.createAreaChart(d.properties.GEOID);
       });
 
     this.createLegend(countyPopData, totalStatePopulation);
@@ -168,10 +178,7 @@ class State {
       .data(this.mapColors)
       .enter()
       .append("g")
-      .attr(
-        "transform",
-        `translate(75,0)`
-      );
+      .attr("transform", `translate(75,0)`);
 
     legend
       .append("rect")
@@ -183,10 +190,7 @@ class State {
     this.legendSVG
       .append("g")
       .attr("class", "axis axis__legend")
-      .attr(
-        "transform",
-        `translate(75, ${this.legendHeight})`
-      )
+      .attr("transform", `translate(75, ${this.legendHeight})`)
       .call(legendAxis);
   }
 
@@ -219,7 +223,6 @@ class State {
     const lineChartSVGWidth = 800;
     let margin = { top: 30, right: 75, bottom: 40, left: 75 };
 
-
     let svg = d3
       .select(".graph1")
       .append("svg")
@@ -242,7 +245,6 @@ class State {
       formattedStateData.push({ year: d[0], population: d[1] });
     });
 
-
     //Create and add axes
     let xScale = d3
       .scaleLinear()
@@ -257,155 +259,170 @@ class State {
       ])
       .range([lineChartSVGHeight - margin.bottom, margin.top]);
 
-    let xAxis = d3.axisBottom(xScale).tickFormat(d3.format("d"))
+    let xAxis = d3.axisBottom(xScale).tickFormat(d3.format("d"));
     let yAxis = d3.axisLeft(yScale);
 
-    let xAxisGroup = svg.append("g")
+    let xAxisGroup = svg
+      .append("g")
       .attr("transform", `translate(0, ${lineChartSVGHeight - margin.bottom})`)
       .call(xAxis);
 
-    xAxisGroup.append("g")
+    xAxisGroup
+      .append("g")
       .attr("transform", `translate(${lineChartSVGWidth / 2}, 40)`)
       .append("text")
       .attr("class", "label")
       .attr("text-anchor", "middle")
-      .text("Year")
+      .text("Year");
 
-    let yAxisGroup = svg.append("g")
+    let yAxisGroup = svg
+      .append("g")
       .attr("transform", `translate(${margin.left}, 0)`)
-      .call(yAxis)
+      .call(yAxis);
 
-    yAxisGroup.append("g")
+    yAxisGroup
+      .append("g")
       .attr("transform", `translate(-60, ${lineChartSVGHeight / 2})`)
       .append("text")
       .attr("class", "label")
       .attr("text-anchor", "middle")
       .attr("transform", "rotate(-90)")
-      .text("Population")
-
+      .text("Population");
 
     // add line
-    svg.append("path")
+    svg
+      .append("path")
       .datum(formattedStateData)
       .attr("class", "line")
-      .attr("d", d3.line()
-        .x(d => { return xScale(d.year) })
-        .y(d => { return yScale(d.population) }))
-      .on('mousemove', (event, d) => {
+      .attr(
+        "d",
+        d3
+          .line()
+          .x((d) => {
+            return xScale(d.year);
+          })
+          .y((d) => {
+            return yScale(d.population);
+          })
+      )
+      .on("mousemove", (event, d) => {
         console.log(d);
       });
-
-    //add circles for better visiblity
-    // svg.append("g")
-    //   .selectAll("dot")
-    //   .data(formattedStateData)
-    //   .enter()
-    //   .append("circle")
-    //   .attr("cx", d => { return xScale(d.year) })
-    //   .attr("cy", d => { return yScale(d.population) })
-    //   .attr("r", 2)
-    //   .attr("class", "circle")
   }
 
-  createBarChart(data) {
-    console.log("SP", data);
+  createAreaChart(county_id) {
+    console.log("SP", county_id, this.countyPopulationData);
 
-    const barChartSVGHeight = 250;
-    const barChartSVGWidth = 500;
-    const barChartSVGMargin = 40;
+    //Remove prior chart
+    d3.select(".area_chart_svg").remove();
+    let currentCountyData = [];
+    let countyName;
 
-    const barChartHeight = barChartSVGHeight - 2 * barChartSVGMargin;
-    const barChartWidth = barChartSVGWidth - 2 * barChartSVGMargin;
+    //Format data
+    Object.entries(this.countyPopulationData).forEach((d) => {
+      const year = d[0];
+      countyName = d[1][county_id].name;
 
-    d3.select(".graph2")
+      currentCountyData.push({
+        year: +year,
+        population: +d[1][county_id].population,
+      });
+    });
+
+    const areaChartSVGHeight = 250;
+    const areaChartSVGWidth = 500;
+    const areaChartSVGMargin = 70;
+
+    const areaChartHeight = areaChartSVGHeight - 2 * areaChartSVGMargin;
+    const areaChartWidth = areaChartSVGWidth - 2 * areaChartSVGMargin;
+
+    //Add chart SVG
+    d3.select(".graph3")
       .append("svg")
-      .attr("width", barChartSVGWidth)
-      .attr("height", barChartSVGHeight)
-      .attr("class", "bar_chart_svg")
+      .attr("width", areaChartSVGWidth)
+      .attr("height", areaChartSVGHeight)
+      .attr("class", "area_chart_svg")
       .append("g")
       .attr(
         "transform",
-        `translate(${barChartSVGMargin}, ${barChartSVGMargin})`
+        `translate(${areaChartSVGMargin}, ${areaChartSVGMargin})`
       );
 
-    let svg = d3.select(".bar_chart_svg");
+    let svg = d3.select(".area_chart_svg");
 
+    //Add chart title
     svg
       .append("text")
       .attr("class", "title")
-      .attr("x", barChartSVGWidth / 2 + barChartSVGMargin)
-      .attr("y", barChartSVGMargin / 2)
+      .attr("x", areaChartWidth / 2 + areaChartSVGMargin)
+      .attr("y", areaChartSVGMargin / 2)
       .attr("text-anchor", "middle")
-      .text("County Bar Chart");
-
-    let barChartData = [];
-
-    Object.entries(data).forEach((d) => {
-      if (d[0] !== "highest_population" && d[0] !== "lowest_population") {
-        if (d[1].name.substring(d[1].name.length - 6) === "County") {
-          barChartData.push({
-            name: d[1].name.substring(0, d[1].name.length - 7),
-            population: d[1].population,
-          });
-        } else {
-          barChartData.push({ name: d[1].name, population: d[1].population });
-        }
-      }
-    });
+      .text(`${countyName} population from 2010 to 2019`);
 
     //Create and add axes
     let xScale = d3
-      .scaleBand()
-      .domain(barChartData.map((d) => d.name))
-      .range([0, barChartWidth]);
-
-    console.log(barChartData.map((d) => d.name));
+      .scaleLinear()
+      .domain(d3.extent(currentCountyData, (d) => d.year))
+      .range([0, areaChartWidth]);
 
     svg
       .append("g")
       .attr("class", "axis x_axis")
       .attr(
         "transform",
-        `translate(${barChartSVGMargin}, ${barChartSVGMargin + barChartHeight})`
+        `translate(${areaChartSVGMargin}, ${
+          areaChartSVGMargin + areaChartHeight
+        })`
       )
-      .call(d3.axisBottom(xScale))
-      .selectAll("text")
-      .style("text-anchor", "end")
-      .attr("dx", "-.8em")
-      .attr("dy", ".15em")
-      .attr("transform", "rotate(-65)");
+      .call(d3.axisBottom(xScale).tickFormat(d3.format("d")));
+    svg
+      .append("text")
+      .attr("class", "axis_label")
+      .attr("x", areaChartWidth / 2 + areaChartSVGMargin)
+      .attr("y", areaChartHeight + areaChartSVGMargin + 40)
+      .attr("text-anchor", "middle")
+      .text("Year");
 
     let yScale = d3
       .scaleLinear()
-      .domain([
-        d3.min(barChartData, (d) => d.population),
-        d3.max(barChartData, (d) => d.population),
-      ])
-      .range([barChartHeight, 0]);
+      .domain(d3.extent(currentCountyData, (d) => d.population))
+      .range([areaChartHeight, 0]);
 
     svg
       .append("g")
       .attr("class", "axis y_axis")
       .attr(
         "transform",
-        `translate(${barChartSVGMargin}, ${barChartSVGMargin})`
+        `translate(${areaChartSVGMargin}, ${areaChartSVGMargin})`
       )
       .call(
         d3.axisLeft(yScale).tickFormat((d) => this.formatPopulationOnAxis(d))
       );
 
-    //Add bars to chart
-    const bars = svg.selectAll().data(barChartData).enter();
-    bars
-      .append("rect")
-      .attr("class", "bar")
-      .attr("x", (d) => xScale(d.name))
-      .attr("y", (d) => yScale(d.population))
+    svg
+      .append("text")
+      .attr("class", "axis_label")
+      .attr("x", -(areaChartHeight / 2) - areaChartSVGMargin * 1.5)
+      .attr("y", areaChartSVGMargin / 2.5)
+      .attr("transform", "rotate(-90)")
+      .text("Population");
+
+    //Add area chart
+    svg
+      .append("path")
+      .datum(currentCountyData)
+      .attr("class", "linearea")
       .attr(
         "transform",
-        `translate(${barChartSVGMargin}, ${barChartSVGMargin})`
+        `translate(${areaChartSVGMargin}, ${areaChartSVGMargin})`
       )
-      .attr("height", (d) => barChartHeight - yScale(d.population))
-      .attr("width", xScale.bandwidth());
+      .attr(
+        "d",
+        d3
+          .area()
+          .x((d) => xScale(d.year))
+          .y0(areaChartHeight)
+          .y1((d) => yScale(d.population))
+      );
   }
 }
