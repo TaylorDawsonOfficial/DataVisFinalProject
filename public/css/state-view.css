@@ -102,7 +102,7 @@ nav {
 
 .side-graphs {
   grid-area: side-graphs;
-  background-color: lightpink;
+  /* background-color: lightpink; */
   display: grid;
   grid-template-rows: 1fr 1fr 1fr;
 }
@@ -111,6 +111,7 @@ nav {
   padding: 1em;
   margin: 0 auto;
   width: 90%;
+  border: 3px solid black;
 }
 
 .line {
@@ -120,9 +121,16 @@ nav {
 }
 
 .graph2 {
-  background-color: lightgreen;
+  /* background-color: lightgreen; */
+  border: 3px solid black;
 }
 
 .graph3 {
-  background-color: lightpink;
+  /* background-color: lightpink; */
+  border: 3px solid black;
+}
+
+.linearea {
+  opacity: 0.3;
+  fill: black;
 }
