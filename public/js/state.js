@@ -1,5 +1,5 @@
 class State {
-  constructor(stateName, topologyData, stateData, dataStartYear, countyData) {
+  constructor(stateName, topologyData, stateData, dataStartYear, countyData, startingData) {
     this.stateName = stateName;
     this.countyPopulationData = countyData;
     this.width = 960;
@@ -18,11 +18,12 @@ class State {
       "#5f3dc4",
     ];
     this.mapColorFill;
-    this.minPopPercent;
-    this.maxPopPercent;
+    this.minAxisValue;
+    this.maxAxisValue;
     this.stateSVG;
     this.legendWidth = 800;
     this.legendHeight = 25;
+    this.selectedData = startingData;
 
     let key = Object.keys(topologyData.objects)[0];
     let state = topojson.feature(topologyData, topologyData.objects[key]);
@@ -136,17 +137,41 @@ class State {
    * Updated legend axis scale with new values from chosen year
    */
   updateLegend(countyPopData, totalStatePopulation) {
-    this.minPopPercent = +(
-      (countyPopData["lowest_population"] / totalStatePopulation) *
-      100
-    ).toFixed(2);
-    this.maxPopPercent = +(
-      (countyPopData["highest_population"] / totalStatePopulation) *
-      100
-    ).toFixed(2);
+    let tickFormat;
+    switch(this.selectedData){
+      case "total-pop":
+        this.minAxisValue = +(
+          (countyPopData["lowest_population"] / totalStatePopulation) *
+          100
+        ).toFixed(2);
+        this.maxAxisValue = +(
+          (countyPopData["highest_population"] / totalStatePopulation) *
+          100
+        ).toFixed(2);
+        tickFormat = (x) => x.toFixed(2) + "%";
+        break;
+      case "square-mile":
+        console.log("Update legend", countyPopData, totalStatePopulation);
+        this.minAxisValue =
+          +countyPopData["smallest_landarea"].toFixed(2);
+        this.maxAxisValue =
+          +countyPopData["largest_landarea"].toFixed(2);
+
+        tickFormat = (x) => x.toFixed(2);
+        break;
+      case "pop-increase":
+        console.log(countyPopData, totalStatePopulation);
+        this.minAxisValue =
+          +countyPopData["lowest_percent_change"].toFixed(2);
+        this.maxAxisValue =
+          +countyPopData["highest_percent_change"].toFixed(2);
+
+        tickFormat = (x) => x.toFixed(2) + "%";
+        break;
+    }   
 
     //Legend data
-    this.mapColorFill.domain([this.minPopPercent, this.maxPopPercent]);
+    this.mapColorFill.domain([this.minAxisValue, this.maxAxisValue]);
 
     let fillRange = [];
     for (let i = 0; i <= this.mapColors.length; i++) {
@@ -155,15 +180,23 @@ class State {
 
     let legendAxisScale = d3.scaleQuantile().range(fillRange);
 
-    let diff =
-      (this.maxPopPercent - this.minPopPercent) / this.mapColors.length;
+    let diff;
+
+    if(this.minAxisValue < 0)
+      diff = (this.maxAxisValue + this.minAxisValue) / this.mapColors.length;
+    else
+      diff = (this.maxAxisValue - this.minAxisValue) / this.mapColors.length;
+      
     let legendScale = [];
-    legendScale.push(this.minPopPercent);
+    legendScale.push(this.minAxisValue);
     for (let i = 0; i < this.mapColors.length - 1; i++) {
-      legendScale.push(diff * (i + 1) + +this.minPopPercent);
+      if(this.minAxisValue < 0)
+      legendScale.push(diff * (i + 1) - +this.minAxisValue);
+      else
+        legendScale.push(diff * (i + 1) + +this.minAxisValue);
     }
 
-    legendScale.push(this.maxPopPercent);
+    legendScale.push(this.maxAxisValue);
 
     legendAxisScale.domain(legendScale);
 
@@ -201,17 +234,45 @@ class State {
     //Loop through all states and update display based on population data
     const stateObject = this;
 
-    Object.entries(county_data).forEach(function (data) {
-      if (data[0] !== "lowest_population" && data[0] !== "highest_population") {
-        const pop_percentage = (data[1].population / state_population) * 100;
+    switch (this.selectedData) {
+      case "total-pop":
+        Object.entries(county_data).forEach(function (data) {
+          if (!stateObject.dataIsNotFilteredValue(data[0])) {
+            const pop_percentage = (data[1].population / state_population) * 100;
+    
+            const countySelector = `county__${data[0]}`;
+    
+            d3.select(`.${countySelector}`).attr("fill", () =>
+              stateObject.fillCounty(countySelector, pop_percentage)
+            );
+          }
+        });
+        break;
+      case "pop-increase":
+        Object.entries(county_data).forEach(function (data) {
+          if (!stateObject.dataIsNotFilteredValue(data[0])) {
+            const countySelector = `county__${data[0]}`;
+    
+            d3.select(`.${countySelector}`).attr("fill", () =>
+              stateObject.fillCounty(countySelector, +data[1].percentIncrease)
+            );
+          }
+        });
+        break;
+      case "square-mile":
+        console.log("Assign pop: ", county_data);
+        Object.entries(county_data).forEach(function (data) {
+          if (!stateObject.dataIsNotFilteredValue(data[0])) {
+            const countySelector = `county__${data[0]}`;
+            d3.select(`.${countySelector} `).attr("fill", () =>
+              stateObject.fillCounty(countySelector, +data[1].mileage)
+            );
+          }
+        });
+        break;
+    }
 
-        const countySelector = `county__${data[0]}`;
-
-        d3.select(`.${countySelector}`).attr("fill", () =>
-          stateObject.fillCounty(countySelector, pop_percentage)
-        );
-      }
-    });
+    
   }
 
   formatPopulationOnAxis(value) {
@@ -424,5 +485,22 @@ class State {
           .y0(areaChartHeight)
           .y1((d) => yScale(d.population))
       );
+  }
+
+  setSelectedData(newSelection){
+    this.selectedData = newSelection;
+  }
+
+  dataIsNotFilteredValue(valueToTest) {
+    return (
+      valueToTest === "largest_percent_increase" ||
+      valueToTest === "largest_population" ||
+      valueToTest === "smallest_percent_increase" ||
+      valueToTest === "smallest_population" ||
+      valueToTest === "total_population" ||
+      valueToTest === "landarea" ||
+      valueToTest === "smallest_landarea" ||
+      valueToTest === "largest_landarea"
+    );
   }
 }

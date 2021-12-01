@@ -4,24 +4,29 @@ class Data {
 
     this.countyPopulation = {};
     this.stateHistoryPopulation = {};
-    this.countyLandArea;
+    this.countyLandArea = {};
     this.topologyData;
     this.startYear = 2010; //The year th at the slider starts at
 
     this.stateVis;
 
-    this.selectedData = "total-pop";
+    //Get the current selected radio button
+    this.selectedData = document.querySelector(
+      'input[name="radio_buttons"]:checked'
+    ).value;
 
     // will fire when everything has loaded. This is the main point of entry
-    $.when(this.loadCounties(), this.loadStatePop(), this.loadMap(), this.loadLandArea()).done(
+    $.when(this.loadCounties(), this.loadStatePop(), this.loadMap()).done(
       () => {
         console.log('county land area data is here:', this.countyLandArea);
+
         this.stateVis = new State(
           this.stateName,
           this.topologyData,
           this.stateHistoryPopulation,
           this.startYear,
-          this.countyPopulation
+          this.countyPopulation, 
+          this.selectedData
         );
       }
     );
@@ -31,7 +36,8 @@ class Data {
    * Load county-level population for each year of data
    * @returns
    */
-  loadCounties() {
+  async loadCounties() {
+    await this.loadLandArea();
     return $.ajax({
       method: "get",
       url: `/data/counties/${this.stateName}`,
@@ -40,22 +46,42 @@ class Data {
           const county_id = d[1].fips;
           const county_name = d[1].county;
 
-          let minPop = Number.MAX_SAFE_INTEGER;
-          let maxPop = Number.MIN_SAFE_INTEGER;
-
           //Add county population data for each year
           d[1].years.forEach((d) => {
+            let percentIncrease = 1;
+            if (+d.year > 2010) {
+              let increase =
+                d.population -
+                this.countyPopulation[2010][county_id].population;
+              percentIncrease = +(
+                (increase / this.countyPopulation[2010][county_id].population) *
+                100
+              ).toFixed(2);
+            }
+
+            const squareMiles = d.population / this.countyLandArea[county_id].mileage;
+
             if (this.countyPopulation[d.year] === undefined) {
               this.countyPopulation[d.year] = {};
               this.countyPopulation[d.year]["lowest_population"] =
                 Number.MAX_SAFE_INTEGER;
               this.countyPopulation[d.year]["highest_population"] =
                 Number.MIN_SAFE_INTEGER;
+              this.countyPopulation[d.year]["lowest_percent_change"] =
+                Number.MAX_SAFE_INTEGER;
+              this.countyPopulation[d.year]["highest_percent_change"] =
+                Number.MIN_SAFE_INTEGER;
+              this.countyPopulation[d.year]["smallest_landarea"] =
+                Number.MAX_SAFE_INTEGER;
+              this.countyPopulation[d.year]["largest_landarea"] =
+                Number.MIN_SAFE_INTEGER;
             }
 
             this.countyPopulation[d.year][county_id] = {
               name: county_name,
               population: d.population,
+              percentIncrease: percentIncrease,
+              mileage: squareMiles
             };
 
             if (
@@ -68,18 +94,32 @@ class Data {
             )
               this.countyPopulation[d.year]["highest_population"] =
                 d.population;
+
+            if(percentIncrease > this.countyPopulation[d.year]["highest_percent_change"])
+              this.countyPopulation[d.year]["highest_percent_change"] = percentIncrease;
+
+            if(percentIncrease < this.countyPopulation[d.year]["lowest_percent_change"])
+              this.countyPopulation[d.year]["lowest_percent_change"] = percentIncrease;
+
+            if(squareMiles < this.countyPopulation[d.year]["smallest_landarea"])
+              this.countyPopulation[d.year]["smallest_landarea"] = squareMiles;
+
+              if(squareMiles > this.countyPopulation[d.year]["largest_landarea"])
+                this.countyPopulation[d.year]["largest_landarea"] = squareMiles;
           });
         });
       },
     });
   }
 
-  loadLandArea() {
+  async loadLandArea() {
     return $.ajax({
       method: "get",
       url: `/data/county-land-area/${this.stateName}`,
       success: (data) => {
-        this.countyLandArea = data;
+        Object.entries(data).forEach((d) => {
+          this.countyLandArea[d[1].fips] = {countyID: d[1].fips, name: d[1].county, mileage: d[1]["square miles"]};
+        })
       },
     });
   }
@@ -111,6 +151,9 @@ class Data {
   }
 
   assignPopData() {
+    this.stateVis.setSelectedData(this.selectedData);
+    this.updateLegend();
+
     this.stateVis.assignPopData(
       this.countyPopulation[slider.value],
       this.stateHistoryPopulation[slider.value]
