@@ -18,14 +18,14 @@ class Data {
     // will fire when everything has loaded. This is the main point of entry
     $.when(this.loadCounties(), this.loadStatePop(), this.loadMap()).done(
       () => {
-        console.log('county land area data is here:', this.countyLandArea);
+        console.log("county land area data is here:", this.countyLandArea);
 
         this.stateVis = new State(
           this.stateName,
           this.topologyData,
           this.stateHistoryPopulation,
           this.startYear,
-          this.countyPopulation, 
+          this.countyPopulation,
           this.selectedData
         );
       }
@@ -59,7 +59,8 @@ class Data {
               ).toFixed(2);
             }
 
-            const squareMiles = d.population / this.countyLandArea[county_id].mileage;
+            const squareMiles =
+              d.population / this.countyLandArea[county_id].mileage;
 
             if (this.countyPopulation[d.year] === undefined) {
               this.countyPopulation[d.year] = {};
@@ -81,7 +82,8 @@ class Data {
               name: county_name,
               population: d.population,
               percentIncrease: percentIncrease,
-              mileage: squareMiles
+              pop_per_sqmiles: squareMiles,
+              mileage: this.countyLandArea[county_id].mileage,
             };
 
             if (
@@ -95,17 +97,29 @@ class Data {
               this.countyPopulation[d.year]["highest_population"] =
                 d.population;
 
-            if(percentIncrease > this.countyPopulation[d.year]["highest_percent_change"])
-              this.countyPopulation[d.year]["highest_percent_change"] = percentIncrease;
+            if (
+              percentIncrease >
+              this.countyPopulation[d.year]["highest_percent_change"]
+            )
+              this.countyPopulation[d.year]["highest_percent_change"] =
+                percentIncrease;
 
-            if(percentIncrease < this.countyPopulation[d.year]["lowest_percent_change"])
-              this.countyPopulation[d.year]["lowest_percent_change"] = percentIncrease;
+            if (
+              percentIncrease <
+              this.countyPopulation[d.year]["lowest_percent_change"]
+            )
+              this.countyPopulation[d.year]["lowest_percent_change"] =
+                percentIncrease;
 
-            if(squareMiles < this.countyPopulation[d.year]["smallest_landarea"])
+            if (
+              squareMiles < this.countyPopulation[d.year]["smallest_landarea"]
+            )
               this.countyPopulation[d.year]["smallest_landarea"] = squareMiles;
 
-              if(squareMiles > this.countyPopulation[d.year]["largest_landarea"])
-                this.countyPopulation[d.year]["largest_landarea"] = squareMiles;
+            if (squareMiles > this.countyPopulation[d.year]["largest_landarea"])
+              this.countyPopulation[d.year]["largest_landarea"] = squareMiles;
+
+            this.countyPopulation[d.year]["year"] = d.year;
           });
         });
       },
@@ -118,8 +132,12 @@ class Data {
       url: `/data/county-land-area/${this.stateName}`,
       success: (data) => {
         Object.entries(data).forEach((d) => {
-          this.countyLandArea[d[1].fips] = {countyID: d[1].fips, name: d[1].county, mileage: d[1]["square miles"]};
-        })
+          this.countyLandArea[d[1].fips] = {
+            countyID: d[1].fips,
+            name: d[1].county,
+            mileage: d[1]["square miles"],
+          };
+        });
       },
     });
   }
@@ -156,7 +174,8 @@ class Data {
 
     this.stateVis.assignPopData(
       this.countyPopulation[slider.value],
-      this.stateHistoryPopulation[slider.value]
+      this.stateHistoryPopulation[slider.value],
+      slider.value
     );
   }
 
