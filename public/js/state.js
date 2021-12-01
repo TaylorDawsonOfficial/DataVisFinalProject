@@ -1,5 +1,12 @@
 class State {
-  constructor(stateName, topologyData, stateData, dataStartYear, countyData, startingData) {
+  constructor(
+    stateName,
+    topologyData,
+    stateData,
+    dataStartYear,
+    countyData,
+    startingData
+  ) {
     this.stateName = stateName;
     this.countyPopulationData = countyData;
     this.width = 960;
@@ -107,7 +114,6 @@ class State {
       .enter()
       .append("path")
       .attr("class", (d) => {
-        // console.log(d.properties.NAME, d.properties.GEOID);
         return `county county__${d.properties.GEOID}`;
       })
       .attr("d", path)
@@ -138,7 +144,7 @@ class State {
    */
   updateLegend(countyPopData, totalStatePopulation) {
     let tickFormat;
-    switch(this.selectedData){
+    switch (this.selectedData) {
       case "total-pop":
         this.minAxisValue = +(
           (countyPopData["lowest_population"] / totalStatePopulation) *
@@ -151,24 +157,18 @@ class State {
         tickFormat = (x) => x.toFixed(2) + "%";
         break;
       case "square-mile":
-        console.log("Update legend", countyPopData, totalStatePopulation);
-        this.minAxisValue =
-          +countyPopData["smallest_landarea"].toFixed(2);
-        this.maxAxisValue =
-          +countyPopData["largest_landarea"].toFixed(2);
+        this.minAxisValue = +countyPopData["smallest_landarea"].toFixed(2);
+        this.maxAxisValue = +countyPopData["largest_landarea"].toFixed(2);
 
         tickFormat = (x) => x.toFixed(2);
         break;
       case "pop-increase":
-        console.log(countyPopData, totalStatePopulation);
-        this.minAxisValue =
-          +countyPopData["lowest_percent_change"].toFixed(2);
-        this.maxAxisValue =
-          +countyPopData["highest_percent_change"].toFixed(2);
+        this.minAxisValue = +countyPopData["lowest_percent_change"].toFixed(2);
+        this.maxAxisValue = +countyPopData["highest_percent_change"].toFixed(2);
 
         tickFormat = (x) => x.toFixed(2) + "%";
         break;
-    }   
+    }
 
     //Legend data
     this.mapColorFill.domain([this.minAxisValue, this.maxAxisValue]);
@@ -182,18 +182,16 @@ class State {
 
     let diff;
 
-    if(this.minAxisValue < 0)
+    if (this.minAxisValue < 0)
       diff = (this.maxAxisValue + this.minAxisValue) / this.mapColors.length;
-    else
-      diff = (this.maxAxisValue - this.minAxisValue) / this.mapColors.length;
-      
+    else diff = (this.maxAxisValue - this.minAxisValue) / this.mapColors.length;
+
     let legendScale = [];
     legendScale.push(this.minAxisValue);
     for (let i = 0; i < this.mapColors.length - 1; i++) {
-      if(this.minAxisValue < 0)
-      legendScale.push(diff * (i + 1) - +this.minAxisValue);
-      else
-        legendScale.push(diff * (i + 1) + +this.minAxisValue);
+      if (this.minAxisValue < 0)
+        legendScale.push(diff * (i + 1) - +this.minAxisValue);
+      else legendScale.push(diff * (i + 1) + +this.minAxisValue);
     }
 
     legendScale.push(this.maxAxisValue);
@@ -238,10 +236,11 @@ class State {
       case "total-pop":
         Object.entries(county_data).forEach(function (data) {
           if (!stateObject.dataIsNotFilteredValue(data[0])) {
-            const pop_percentage = (data[1].population / state_population) * 100;
-    
+            const pop_percentage =
+              (data[1].population / state_population) * 100;
+
             const countySelector = `county__${data[0]}`;
-    
+
             d3.select(`.${countySelector}`).attr("fill", () =>
               stateObject.fillCounty(countySelector, pop_percentage)
             );
@@ -252,7 +251,7 @@ class State {
         Object.entries(county_data).forEach(function (data) {
           if (!stateObject.dataIsNotFilteredValue(data[0])) {
             const countySelector = `county__${data[0]}`;
-    
+
             d3.select(`.${countySelector}`).attr("fill", () =>
               stateObject.fillCounty(countySelector, +data[1].percentIncrease)
             );
@@ -260,19 +259,19 @@ class State {
         });
         break;
       case "square-mile":
-        console.log("Assign pop: ", county_data);
         Object.entries(county_data).forEach(function (data) {
           if (!stateObject.dataIsNotFilteredValue(data[0])) {
             const countySelector = `county__${data[0]}`;
             d3.select(`.${countySelector} `).attr("fill", () =>
-              stateObject.fillCounty(countySelector, +data[1].mileage)
+              stateObject.fillCounty(countySelector, +data[1].pop_per_sqmiles)
             );
           }
         });
         break;
     }
 
-    
+    //Create scatter plot for currently selected year
+    this.createScatterPlot(county_data);
   }
 
   formatPopulationOnAxis(value) {
@@ -372,8 +371,6 @@ class State {
   }
 
   createAreaChart(county_id) {
-    console.log("SP", county_id, this.countyPopulationData);
-
     //Remove prior chart
     d3.select(".area_chart_svg").remove();
     let currentCountyData = [];
@@ -487,20 +484,175 @@ class State {
       );
   }
 
-  setSelectedData(newSelection){
+  createScatterPlot(countyData) {
+    //Get data needed for scatter plot
+    let scatterplotCountyData = [];
+    Object.entries(countyData).forEach((d) => {
+      if (!this.dataIsNotFilteredValue(d[0])) {
+        scatterplotCountyData.push({
+          countyID: d[0],
+          countyName: d[1].name,
+          population: d[1].population,
+          mileage: d[1].mileage,
+        });
+      }
+    });
+
+    d3.select(".scatterplot_svg").remove();
+
+    const scatterplotSVGHeight = 250;
+    const scatterplotSVGWidth = 500;
+    const scatterplotSVGMargin = 70;
+
+    const scatterplotHeight = scatterplotSVGHeight - 2 * scatterplotSVGMargin;
+    const scatterplotWidth = scatterplotSVGWidth - 2 * scatterplotSVGMargin;
+
+    //Add chart SVG
+    d3.select(".graph2")
+      .append("svg")
+      .attr("width", scatterplotSVGWidth)
+      .attr("height", scatterplotSVGHeight)
+      .attr("class", "scatterplot_svg")
+      .append("g")
+      .attr(
+        "transform",
+        `translate(${scatterplotSVGMargin}, ${scatterplotSVGMargin})`
+      );
+
+    let svg = d3.select(".scatterplot_svg");
+
+    //Add chart title
+    svg
+      .append("text")
+      .attr("class", "title")
+      .attr("x", scatterplotWidth / 2 + scatterplotSVGMargin)
+      .attr("y", scatterplotSVGMargin / 2)
+      .attr("text-anchor", "middle")
+      .text(
+        `County relation from population to square miles in ${countyData["year"]}`
+      );
+
+    //Set up color for scatterplot
+    let color = d3.scaleOrdinal(d3.schemeCategory10);
+
+    //Set up axes
+    let xScale = d3.scaleLinear().range([0, scatterplotWidth]);
+    let xValue = function (d) {
+      return +d["mileage"];
+    };
+    let yScale = d3.scaleLinear().range([scatterplotHeight, 0]);
+    let yValue = function (d) {
+      return +d["population"];
+    };
+
+    let xAxis = d3.axisBottom(xScale).tickFormat(d3.format("d"));
+    svg
+      .append("text")
+      .attr("class", "axis_label")
+      .attr("x", scatterplotWidth / 2 + scatterplotSVGMargin)
+      .attr("y", scatterplotHeight + scatterplotSVGMargin * 1.9)
+      .attr("text-anchor", "middle")
+      .text("Square Miles of County");
+
+    let yAxis = d3.axisLeft(yScale);
+    svg
+      .append("text")
+      .attr("class", "axis_label")
+      .attr("x", -(scatterplotHeight / 2) - scatterplotSVGMargin * 1.3)
+      .attr("y", scatterplotSVGMargin / 3)
+      .attr("transform", "rotate(-90)")
+      .attr("text-anchor", "middle")
+      .text("Population of County");
+
+    xScale.domain([
+      d3.min(scatterplotCountyData, xValue),
+      d3.max(scatterplotCountyData, xValue),
+    ]);
+    yScale.domain([
+      d3.min(scatterplotCountyData, yValue),
+      d3.max(scatterplotCountyData, yValue),
+    ]);
+
+    //Add axes
+    svg
+      .append("g")
+      .attr("class", "axis_text")
+      .attr(
+        "transform",
+        `translate(${scatterplotSVGMargin}, ${
+          scatterplotHeight + scatterplotSVGMargin * 1.5
+        })`
+      )
+      .call(xAxis)
+      .append("text")
+      .attr("x", scatterplotWidth)
+      .attr("y", -6)
+      .text("Mileage");
+    svg
+      .append("g")
+      .attr("class", "axis_text")
+      .attr(
+        "transform",
+        `translate(${scatterplotSVGMargin}, ${
+          scatterplotSVGMargin + scatterplotSVGMargin / 2
+        })`
+      )
+      .call(yAxis)
+      .append("text")
+      .text("Population");
+
+    //Draw circles
+    svg
+      .selectAll("circle")
+      .data(scatterplotCountyData)
+      .enter()
+      .append("circle")
+      .attr("class", (d) => d["countyID"])
+      .attr("r", 7)
+      .attr("cx", (d) => xScale(+d["mileage"]))
+      .attr("cy", (d) => yScale(+d["population"]))
+      .attr(
+        "transform",
+        `translate(${scatterplotSVGMargin}, ${
+          scatterplotSVGMargin + scatterplotSVGMargin / 2
+        })`
+      )
+      .style("fill", (d) => color(d["countyID"]))
+      .on("mousedown", (e) => {
+        d3.select(e.target).attr("r", 12);
+      })
+      .on("mouseup", (e, d) => {
+        d3.select(e.target).attr("r", 7);
+      });
+
+    //Create legend
+    let legend = svg
+      .selectAll(".legend")
+      .data(color.domain())
+      .enter()
+      .append("g")
+      .attr("class", "legend");
+    legend.attr(
+      "transform",
+      (d, i) => `translate(${scatterplotWidth / 2}, ${20 * i})`
+    );
+  }
+
+  setSelectedData(newSelection) {
     this.selectedData = newSelection;
   }
 
   dataIsNotFilteredValue(valueToTest) {
     return (
-      valueToTest === "largest_percent_increase" ||
-      valueToTest === "largest_population" ||
-      valueToTest === "smallest_percent_increase" ||
-      valueToTest === "smallest_population" ||
+      valueToTest === "highest_percent_change" ||
+      valueToTest === "highest_population" ||
+      valueToTest === "lowest_percent_change" ||
+      valueToTest === "lowest_population" ||
       valueToTest === "total_population" ||
       valueToTest === "landarea" ||
       valueToTest === "smallest_landarea" ||
-      valueToTest === "largest_landarea"
+      valueToTest === "largest_landarea" ||
+      valueToTest === "year"
     );
   }
 }
