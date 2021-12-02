@@ -1,4 +1,3 @@
-
 .graph1 {
   display: flex;
   justify-content: center;
@@ -17,18 +16,12 @@
   font-size: x-large;
 }
 
-#totalStatePopulation .area {
+#totalStatePopulation .line {
   stroke: #8000ff;
-  fill: #ffe8f5;
+  fill: none;
   stroke-width: 2;
 }
 
-#totalStatePopulation .dashed-line {
-  stroke: black;
-  stroke-dasharray: 3;
-}
-
 #totalStatePopulation .circle {
-  fill: #8000ff;
-  pointer-events: none;
+  fill: black;
 }

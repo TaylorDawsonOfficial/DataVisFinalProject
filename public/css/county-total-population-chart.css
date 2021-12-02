@@ -1,0 +1,33 @@
+.graph3 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#totalCountyPopulation {
+  max-width: 900px;
+}
+
+#totalCountyPopulation text {
+  font-size: medium;
+}
+
+#totalCountyPopulation .title {
+  font-size: x-large;
+}
+
+#totalCountyPopulation .dashed-line {
+  stroke: black;
+  stroke-dasharray: 3;
+}
+
+#totalCountyPopulation .area {
+  stroke: #cc313d;
+  fill: #f7c5cc;
+  stroke-width: 2;
+}
+
+#totalCountyPopulation .circle {
+  fill: #cc313d;
+  pointer-events: none;
+}

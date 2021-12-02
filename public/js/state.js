@@ -49,12 +49,13 @@ class State {
     );
 
     //Create line chart for state's population from 1969
-    new StateTotal(stateData);
+    new StateTotal(stateName, stateData);
 
     //Chart 2
     // this.createBarChart(countyData);
 
     //Chart 3
+    this.countyTotal = new CountyTotal(this.countyPopulationData);
   }
 
   fillCounty(county, population_percentage) {
@@ -120,10 +121,8 @@ class State {
       .attr("id", (d) => {
         return d.properties.GEOID;
       }) // this GEOID maps back to the fips code in the countyPopulation data. You can use it as a key to get the population data
-      .on("mouseover", (e, d) => {
-        console.log(d);
-        //Display area chart for selected county
-        //this.createAreaChart(d.properties.GEOID);
+      .on('click', (e, d) => {
+        this.countyTotal.drawChart(d.properties.GEOID);
       });
 
     this.createLegend(countyPopData, totalStatePopulation);
@@ -276,119 +275,6 @@ class State {
 
   formatPopulationOnAxis(value) {
     return d3.format("~s")(value);
-  }
-
-  createAreaChart(county_id) {
-    //Remove prior chart
-    d3.select(".area_chart_svg").remove();
-    let currentCountyData = [];
-    let countyName;
-
-    //Format data
-    Object.entries(this.countyPopulationData).forEach((d) => {
-      const year = d[0];
-      countyName = d[1][county_id].name;
-
-      currentCountyData.push({
-        year: +year,
-        population: +d[1][county_id].population,
-      });
-    });
-
-    const areaChartSVGHeight = 250;
-    const areaChartSVGWidth = 500;
-    const areaChartSVGMargin = 70;
-
-    const areaChartHeight = areaChartSVGHeight - 2 * areaChartSVGMargin;
-    const areaChartWidth = areaChartSVGWidth - 2 * areaChartSVGMargin;
-
-    //Add chart SVG
-    d3.select(".graph3")
-      .append("svg")
-      .attr("width", areaChartSVGWidth)
-      .attr("height", areaChartSVGHeight)
-      .attr("class", "area_chart_svg")
-      .append("g")
-      .attr(
-        "transform",
-        `translate(${areaChartSVGMargin}, ${areaChartSVGMargin})`
-      );
-
-    let svg = d3.select(".area_chart_svg");
-
-    //Add chart title
-    svg
-      .append("text")
-      .attr("class", "title")
-      .attr("x", areaChartWidth / 2 + areaChartSVGMargin)
-      .attr("y", areaChartSVGMargin / 2)
-      .attr("text-anchor", "middle")
-      .text(`${countyName} population from 2010 to 2019`);
-
-    //Create and add axes
-    let xScale = d3
-      .scaleLinear()
-      .domain(d3.extent(currentCountyData, (d) => d.year))
-      .range([0, areaChartWidth]);
-
-    svg
-      .append("g")
-      .attr("class", "axis x_axis")
-      .attr(
-        "transform",
-        `translate(${areaChartSVGMargin}, ${areaChartSVGMargin + areaChartHeight
-        })`
-      )
-      .call(d3.axisBottom(xScale).tickFormat(d3.format("d")));
-    svg
-      .append("text")
-      .attr("class", "axis_label")
-      .attr("x", areaChartWidth / 2 + areaChartSVGMargin)
-      .attr("y", areaChartHeight + areaChartSVGMargin + 40)
-      .attr("text-anchor", "middle")
-      .text("Year");
-
-    let yScale = d3
-      .scaleLinear()
-      .domain(d3.extent(currentCountyData, (d) => d.population))
-      .range([areaChartHeight, 0]);
-
-    svg
-      .append("g")
-      .attr("class", "axis y_axis")
-      .attr(
-        "transform",
-        `translate(${areaChartSVGMargin}, ${areaChartSVGMargin})`
-      )
-      .call(
-        d3.axisLeft(yScale).tickFormat((d) => this.formatPopulationOnAxis(d))
-      );
-
-    svg
-      .append("text")
-      .attr("class", "axis_label")
-      .attr("x", -(areaChartHeight / 2) - areaChartSVGMargin * 1.5)
-      .attr("y", areaChartSVGMargin / 2.5)
-      .attr("transform", "rotate(-90)")
-      .text("Population");
-
-    //Add area chart
-    svg
-      .append("path")
-      .datum(currentCountyData)
-      .attr("class", "linearea")
-      .attr(
-        "transform",
-        `translate(${areaChartSVGMargin}, ${areaChartSVGMargin})`
-      )
-      .attr(
-        "d",
-        d3
-          .area()
-          .x((d) => xScale(d.year))
-          .y0(areaChartHeight)
-          .y1((d) => yScale(d.population))
-      );
   }
 
   createScatterPlot(countyData) {
