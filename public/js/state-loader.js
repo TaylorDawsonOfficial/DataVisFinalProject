@@ -18,8 +18,6 @@ class Data {
     // will fire when everything has loaded. This is the main point of entry
     $.when(this.loadCounties(), this.loadStatePop(), this.loadMap()).done(
       () => {
-        console.log("county land area data is here:", this.countyLandArea);
-
         this.stateVis = new State(
           this.stateName,
           this.topologyData,

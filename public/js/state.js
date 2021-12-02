@@ -49,7 +49,7 @@ class State {
     );
 
     //Create line chart for state's population from 1969
-    this.createLineChart(stateData);
+    new StateTotal(stateData);
 
     //Chart 2
     // this.createBarChart(countyData);
@@ -123,7 +123,7 @@ class State {
       .on("mouseover", (e, d) => {
         console.log(d);
         //Display area chart for selected county
-        this.createAreaChart(d.properties.GEOID);
+        //this.createAreaChart(d.properties.GEOID);
       });
 
     this.createLegend(countyPopData, totalStatePopulation);
@@ -271,103 +271,11 @@ class State {
     }
 
     //Create scatter plot for currently selected year
-    this.createScatterPlot(county_data);
+    //this.createScatterPlot(county_data);
   }
 
   formatPopulationOnAxis(value) {
     return d3.format("~s")(value);
-  }
-
-  createLineChart(stateData) {
-    const lineChartSVGHeight = 300;
-    const lineChartSVGWidth = 800;
-    let margin = { top: 30, right: 75, bottom: 40, left: 75 };
-
-    let svg = d3
-      .select(".graph1")
-      .append("svg")
-      .attr("x", 0)
-      .attr("y", 0)
-      .attr("viewBox", `0 0 ${lineChartSVGWidth} ${lineChartSVGHeight}`)
-      .attr("preserveAspectRatio", "xMidYMid meet");
-
-    //Title
-    svg
-      .append("text")
-      .attr("class", "title")
-      .attr("x", lineChartSVGWidth / 2)
-      .attr("y", margin.top / 2)
-      .attr("text-anchor", "middle")
-      .text("Total State Population from 1969");
-
-    let formattedStateData = [];
-    Object.entries(stateData).forEach((d) => {
-      formattedStateData.push({ year: d[0], population: d[1] });
-    });
-
-    //Create and add axes
-    let xScale = d3
-      .scaleLinear()
-      .domain([1969, 2019])
-      .range([margin.left, lineChartSVGWidth - margin.right]);
-
-    let yScale = d3
-      .scaleLinear()
-      .domain([
-        d3.min(formattedStateData, (d) => d.population),
-        d3.max(formattedStateData, (d) => d.population),
-      ])
-      .range([lineChartSVGHeight - margin.bottom, margin.top]);
-
-    let xAxis = d3.axisBottom(xScale).tickFormat(d3.format("d"));
-    let yAxis = d3.axisLeft(yScale);
-
-    let xAxisGroup = svg
-      .append("g")
-      .attr("transform", `translate(0, ${lineChartSVGHeight - margin.bottom})`)
-      .call(xAxis);
-
-    xAxisGroup
-      .append("g")
-      .attr("transform", `translate(${lineChartSVGWidth / 2}, 40)`)
-      .append("text")
-      .attr("class", "label")
-      .attr("text-anchor", "middle")
-      .text("Year");
-
-    let yAxisGroup = svg
-      .append("g")
-      .attr("transform", `translate(${margin.left}, 0)`)
-      .call(yAxis);
-
-    yAxisGroup
-      .append("g")
-      .attr("transform", `translate(-60, ${lineChartSVGHeight / 2})`)
-      .append("text")
-      .attr("class", "label")
-      .attr("text-anchor", "middle")
-      .attr("transform", "rotate(-90)")
-      .text("Population");
-
-    // add line
-    svg
-      .append("path")
-      .datum(formattedStateData)
-      .attr("class", "line")
-      .attr(
-        "d",
-        d3
-          .line()
-          .x((d) => {
-            return xScale(d.year);
-          })
-          .y((d) => {
-            return yScale(d.population);
-          })
-      )
-      .on("mousemove", (event, d) => {
-        console.log(d);
-      });
   }
 
   createAreaChart(county_id) {
@@ -428,8 +336,7 @@ class State {
       .attr("class", "axis x_axis")
       .attr(
         "transform",
-        `translate(${areaChartSVGMargin}, ${
-          areaChartSVGMargin + areaChartHeight
+        `translate(${areaChartSVGMargin}, ${areaChartSVGMargin + areaChartHeight
         })`
       )
       .call(d3.axisBottom(xScale).tickFormat(d3.format("d")));
@@ -579,8 +486,7 @@ class State {
       .attr("class", "axis_text")
       .attr(
         "transform",
-        `translate(${scatterplotSVGMargin}, ${
-          scatterplotHeight + scatterplotSVGMargin * 1.5
+        `translate(${scatterplotSVGMargin}, ${scatterplotHeight + scatterplotSVGMargin * 1.5
         })`
       )
       .call(xAxis)
@@ -593,8 +499,7 @@ class State {
       .attr("class", "axis_text")
       .attr(
         "transform",
-        `translate(${scatterplotSVGMargin}, ${
-          scatterplotSVGMargin + scatterplotSVGMargin / 2
+        `translate(${scatterplotSVGMargin}, ${scatterplotSVGMargin + scatterplotSVGMargin / 2
         })`
       )
       .call(yAxis)
@@ -613,8 +518,7 @@ class State {
       .attr("cy", (d) => yScale(+d["population"]))
       .attr(
         "transform",
-        `translate(${scatterplotSVGMargin}, ${
-          scatterplotSVGMargin + scatterplotSVGMargin / 2
+        `translate(${scatterplotSVGMargin}, ${scatterplotSVGMargin + scatterplotSVGMargin / 2
         })`
       )
       .style("fill", (d) => color(d["countyID"]))

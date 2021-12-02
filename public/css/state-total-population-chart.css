@@ -1,0 +1,34 @@
+
+.graph1 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#totalStatePopulation {
+  max-width: 900px;
+}
+
+#totalStatePopulation text {
+  font-size: medium;
+}
+
+#totalStatePopulation .title {
+  font-size: x-large;
+}
+
+#totalStatePopulation .area {
+  stroke: #8000ff;
+  fill: #ffe8f5;
+  stroke-width: 2;
+}
+
+#totalStatePopulation .dashed-line {
+  stroke: black;
+  stroke-dasharray: 3;
+}
+
+#totalStatePopulation .circle {
+  fill: #8000ff;
+  pointer-events: none;
+}
