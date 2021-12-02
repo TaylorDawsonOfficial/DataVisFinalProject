@@ -12,7 +12,7 @@ body {
   grid-template-areas:
     "navbar navbar"
     "main-graph side-graphs";
-  grid-template-columns: 3fr 2fr;
+  grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 14fr;
   height: 100vh;
 }
@@ -24,14 +24,12 @@ nav {
 .main-graph {
   grid-area: main-graph;
   display: grid;
-  grid-template-rows: 2fr 8fr 1fr;
+  grid-template-rows: 1fr 8fr 1fr;
 }
 
 .controls-section {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1em;
-  padding: 0 0.5em;
+  display: flex;
+  justify-content: center;
 }
 
 .vis-options {
@@ -69,7 +67,7 @@ nav {
 }
 
 .visualization text {
-  font-size: 12pt;
+  font-size: large;
 }
 
 .label {
@@ -105,32 +103,4 @@ nav {
   /* background-color: lightpink; */
   display: grid;
   grid-template-rows: 1fr 1fr 1fr;
-}
-
-.graph1 {
-  padding: 1em;
-  margin: 0 auto;
-  width: 90%;
-  border: 3px solid black;
-}
-
-.line {
-  fill: none;
-  stroke: black;
-  stroke-width: 1;
-}
-
-.graph2 {
-  /* background-color: lightgreen; */
-  border: 3px solid black;
-}
-
-.graph3 {
-  /* background-color: lightpink; */
-  border: 3px solid black;
-}
-
-.linearea {
-  opacity: 0.3;
-  fill: black;
 }

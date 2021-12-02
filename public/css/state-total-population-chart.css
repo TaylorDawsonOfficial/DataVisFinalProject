@@ -1,0 +1,27 @@
+.graph1 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#totalStatePopulation {
+  max-width: 900px;
+}
+
+#totalStatePopulation text {
+  font-size: medium;
+}
+
+#totalStatePopulation .title {
+  font-size: x-large;
+}
+
+#totalStatePopulation .line {
+  stroke: #8000ff;
+  fill: none;
+  stroke-width: 2;
+}
+
+#totalStatePopulation .circle {
+  fill: black;
+}
