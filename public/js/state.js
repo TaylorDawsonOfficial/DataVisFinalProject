@@ -48,13 +48,13 @@ class State {
       stateData[dataStartYear]
     );
 
-    //Create line chart for state's population from 1969
+    //Chart1: Create line chart for state's population from 1969
     new StateTotal(stateName, stateData);
 
-    //Chart 2
-    // this.createBarChart(countyData);
+    //Chart 2: Create scatter plot for relation from population to square miles
+    this.countyScatterPlot = new CountyScatterPlot(this.countyPopulationData[dataStartYear], (x) => this.dataIsNotFilteredValue(x));
 
-    //Chart 3
+    //Chart 3: Create area chart for counties population
     this.countyTotal = new CountyTotal(this.countyPopulationData);
   }
 
@@ -270,162 +270,13 @@ class State {
     }
 
     //Create scatter plot for currently selected year
-    //this.createScatterPlot(county_data);
+    if (this.countyScatterPlot) {
+      this.countyScatterPlot.updateCircles(county_data);
+    }
   }
 
   formatPopulationOnAxis(value) {
     return d3.format("~s")(value);
-  }
-
-  createScatterPlot(countyData) {
-    //Get data needed for scatter plot
-    let scatterplotCountyData = [];
-    Object.entries(countyData).forEach((d) => {
-      if (!this.dataIsNotFilteredValue(d[0])) {
-        scatterplotCountyData.push({
-          countyID: d[0],
-          countyName: d[1].name,
-          population: d[1].population,
-          mileage: d[1].mileage,
-        });
-      }
-    });
-
-    d3.select(".scatterplot_svg").remove();
-
-    const scatterplotSVGHeight = 250;
-    const scatterplotSVGWidth = 500;
-    const scatterplotSVGMargin = 70;
-
-    const scatterplotHeight = scatterplotSVGHeight - 2 * scatterplotSVGMargin;
-    const scatterplotWidth = scatterplotSVGWidth - 2 * scatterplotSVGMargin;
-
-    //Add chart SVG
-    d3.select(".graph2")
-      .append("svg")
-      .attr("width", scatterplotSVGWidth)
-      .attr("height", scatterplotSVGHeight)
-      .attr("class", "scatterplot_svg")
-      .append("g")
-      .attr(
-        "transform",
-        `translate(${scatterplotSVGMargin}, ${scatterplotSVGMargin})`
-      );
-
-    let svg = d3.select(".scatterplot_svg");
-
-    //Add chart title
-    svg
-      .append("text")
-      .attr("class", "title")
-      .attr("x", scatterplotWidth / 2 + scatterplotSVGMargin)
-      .attr("y", scatterplotSVGMargin / 2)
-      .attr("text-anchor", "middle")
-      .text(
-        `County relation from population to square miles in ${countyData["year"]}`
-      );
-
-    //Set up color for scatterplot
-    let color = d3.scaleOrdinal(d3.schemeCategory10);
-
-    //Set up axes
-    let xScale = d3.scaleLinear().range([0, scatterplotWidth]);
-    let xValue = function (d) {
-      return +d["mileage"];
-    };
-    let yScale = d3.scaleLinear().range([scatterplotHeight, 0]);
-    let yValue = function (d) {
-      return +d["population"];
-    };
-
-    let xAxis = d3.axisBottom(xScale).tickFormat(d3.format("d"));
-    svg
-      .append("text")
-      .attr("class", "axis_label")
-      .attr("x", scatterplotWidth / 2 + scatterplotSVGMargin)
-      .attr("y", scatterplotHeight + scatterplotSVGMargin * 1.9)
-      .attr("text-anchor", "middle")
-      .text("Square Miles of County");
-
-    let yAxis = d3.axisLeft(yScale);
-    svg
-      .append("text")
-      .attr("class", "axis_label")
-      .attr("x", -(scatterplotHeight / 2) - scatterplotSVGMargin * 1.3)
-      .attr("y", scatterplotSVGMargin / 3)
-      .attr("transform", "rotate(-90)")
-      .attr("text-anchor", "middle")
-      .text("Population of County");
-
-    xScale.domain([
-      d3.min(scatterplotCountyData, xValue),
-      d3.max(scatterplotCountyData, xValue),
-    ]);
-    yScale.domain([
-      d3.min(scatterplotCountyData, yValue),
-      d3.max(scatterplotCountyData, yValue),
-    ]);
-
-    //Add axes
-    svg
-      .append("g")
-      .attr("class", "axis_text")
-      .attr(
-        "transform",
-        `translate(${scatterplotSVGMargin}, ${scatterplotHeight + scatterplotSVGMargin * 1.5
-        })`
-      )
-      .call(xAxis)
-      .append("text")
-      .attr("x", scatterplotWidth)
-      .attr("y", -6)
-      .text("Mileage");
-    svg
-      .append("g")
-      .attr("class", "axis_text")
-      .attr(
-        "transform",
-        `translate(${scatterplotSVGMargin}, ${scatterplotSVGMargin + scatterplotSVGMargin / 2
-        })`
-      )
-      .call(yAxis)
-      .append("text")
-      .text("Population");
-
-    //Draw circles
-    svg
-      .selectAll("circle")
-      .data(scatterplotCountyData)
-      .enter()
-      .append("circle")
-      .attr("class", (d) => d["countyID"])
-      .attr("r", 7)
-      .attr("cx", (d) => xScale(+d["mileage"]))
-      .attr("cy", (d) => yScale(+d["population"]))
-      .attr(
-        "transform",
-        `translate(${scatterplotSVGMargin}, ${scatterplotSVGMargin + scatterplotSVGMargin / 2
-        })`
-      )
-      .style("fill", (d) => color(d["countyID"]))
-      .on("mousedown", (e) => {
-        d3.select(e.target).attr("r", 12);
-      })
-      .on("mouseup", (e, d) => {
-        d3.select(e.target).attr("r", 7);
-      });
-
-    //Create legend
-    let legend = svg
-      .selectAll(".legend")
-      .data(color.domain())
-      .enter()
-      .append("g")
-      .attr("class", "legend");
-    legend.attr(
-      "transform",
-      (d, i) => `translate(${scatterplotWidth / 2}, ${20 * i})`
-    );
   }
 
   setSelectedData(newSelection) {

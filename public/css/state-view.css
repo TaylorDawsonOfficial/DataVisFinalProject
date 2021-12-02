@@ -104,9 +104,3 @@ nav {
   display: grid;
   grid-template-rows: 1fr 1fr 1fr;
 }
-
-.graph2 {
-  background-color: lightblue;
-  /* background-color: lightgreen; */
-  /* border: 3px solid black; */
-}
