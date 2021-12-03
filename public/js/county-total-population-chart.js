@@ -12,7 +12,7 @@ class CountyTotal {
   }
 
   renderEmpty() {
-    d3.select(".graph3").append("h2").text("Select a County...");
+    d3.select(".graph3").append("h2").text("Select a county on the map...");
   }
 
   getArea() {
