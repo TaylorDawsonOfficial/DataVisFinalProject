@@ -52,10 +52,14 @@ class State {
     new StateTotal(stateName, stateData);
 
     //Chart 2: Create scatter plot for relation from population to square miles
-    this.countyScatterPlot = new CountyScatterPlot(this.countyPopulationData[dataStartYear], (x) => this.dataIsNotFilteredValue(x));
+    this.countyScatterPlot = new CountyScatterPlot(
+      this.countyPopulationData[dataStartYear],
+      (x) => this.dataIsNotFilteredValue(x)
+    );
 
     //Chart 3: Create area chart for counties population
     this.countyTotal = new CountyTotal(this.countyPopulationData);
+    console.log("Graph 3: ", this.countyPopulationData);
   }
 
   fillCounty(county, population_percentage) {
@@ -121,7 +125,7 @@ class State {
       .attr("id", (d) => {
         return d.properties.GEOID;
       }) // this GEOID maps back to the fips code in the countyPopulation data. You can use it as a key to get the population data
-      .on('click', (e, d) => {
+      .on("click", (e, d) => {
         this.countyTotal.drawChart(d.properties.GEOID);
       });
 
@@ -199,9 +203,7 @@ class State {
 
     d3.selectAll(".axis__legend").remove();
 
-    let legendAxis = d3
-      .axisBottom(legendAxisScale)
-      .tickFormat((x) => x.toFixed(2) + "%");
+    let legendAxis = d3.axisBottom(legendAxisScale).tickFormat(tickFormat);
 
     let legend = this.legendSVG
       .selectAll(".legend")
