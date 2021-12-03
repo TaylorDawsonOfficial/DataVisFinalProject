@@ -62,7 +62,25 @@ class State {
     $(`.${county}`).css("fill", this.mapColorFill(population_percentage));
   }
 
+  getHelpText(name) {
+    let key = name.replace(" ", "");
+    if (this.selectedData === "total-pop") {
+      return `${name} Population: ${this.currentData[key].population.toLocaleString("en-US")}`;
+    }
+    else if (this.selectedData === "square-mile") {
+      return `${name} Population Per</br>Square Mile: ${this.currentData[key].landarea.toFixed(2).toLocaleString("en-US")}`;
+    }
+    else if (this.selectedData === "pop-increase") {
+      return `${name} Population Increase</br>Since 1969: ${this.currentData[key].percent_increase}%`;
+    }
+  }
+
   setupSvg(state, countyPopData, totalStatePopulation) {
+
+    // Inspiration for the hoverable tooltip was gathered from here: https://bl.ocks.org/d3noob/a22c42db65eb00d4e369
+    let tooltip = d3.select(".visualization").append("div")
+      .attr("class", "tooltip invisible")
+
     this.stateSVG = d3
       .select(".visualization")
       .append("svg")
@@ -109,6 +127,8 @@ class State {
 
     projection.scale(s).translate(t);
 
+    let self = this;
+
     this.stateSVG
       .selectAll(".county")
       .data(state.features)
@@ -123,6 +143,19 @@ class State {
       }) // this GEOID maps back to the fips code in the countyPopulation data. You can use it as a key to get the population data
       .on('click', (e, d) => {
         this.countyTotal.drawChart(d.properties.GEOID);
+      })
+      .on("mouseover", function (event, d) {
+        console.log(d.properties);
+        d3.select(this).style("fill-opacity", 0.5);
+        tooltip
+          .html(self.getHelpText(d.properties.NAME, countyPopData))
+          .attr("class", "tooltip visible")
+          .style("left", `${event.x}px`)
+          .style("top", `${event.y}px`);
+      })
+      .on("mouseout", function (event, d) {
+        d3.select(this).style("fill-opacity", 1);
+        tooltip.attr("class", "tooltip invisible");
       });
 
     this.createLegend(countyPopData, totalStatePopulation);
