@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"86a2f4afd3cc49d294f5200c190e3341","collectionName":"state-land-area","type":"collection"}

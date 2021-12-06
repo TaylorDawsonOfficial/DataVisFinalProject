@@ -3,16 +3,23 @@ Model State Population over ~50 years.
 
 ## How to run
 1. run `npm i` in the root folder
-2. run `npm run watch`
+2. run `node app.js`
 
 ## Creating the database
-* If you want to create the database on your local machine run `node db-seeder.js` this will create the population database with following collections
+* Run `mongorestore` to restore the population database in the "dump" folder
+* Alternatively you can create the database on your local machine run `node db-seeder.js` this will create the population database with following collections.
     * map-paths
-        * used by d3 to draw the boundaries of the states/counties
+        * used by d3 to draw the boundaries of the states
+    * state-map-paths
+        * used by d3 to draw the boundaries of each state and its counties
     * states
         * population data from each state from 1969-2019
     * counties
         * population data from each county from 2010-2019
+    * state-land-area
+        * contains data on the land area for each state
+    * county-land-area
+        * contains data on the land area for each county
 
 ## Folder Structure
 
@@ -22,7 +29,6 @@ Model State Population over ~50 years.
 ### views
 * contains HTML files
     * We are using the EJS templating engine for this project
-
 
 ### data
 * states-10m.json
