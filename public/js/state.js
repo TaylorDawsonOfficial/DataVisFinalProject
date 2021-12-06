@@ -31,6 +31,7 @@ class State {
     this.legendWidth = 800;
     this.legendHeight = 25;
     this.selectedData = startingData;
+    this.currentData;
 
     let key = Object.keys(topologyData.objects)[0];
     let state = topojson.feature(topologyData, topologyData.objects[key]);
@@ -59,14 +60,31 @@ class State {
 
     //Chart 3: Create area chart for counties population
     this.countyTotal = new CountyTotal(this.countyPopulationData);
-    console.log("Graph 3: ", this.countyPopulationData);
   }
 
   fillCounty(county, population_percentage) {
     $(`.${county}`).css("fill", this.mapColorFill(population_percentage));
   }
 
+  getHelpText(key) {
+    let name = this.currentData[key].name;
+    if (this.selectedData === "total-pop") {
+      return `${name} Population: ${this.currentData[key].population.toLocaleString("en-US")}`;
+    }
+    else if (this.selectedData === "square-mile") {
+      return `${name} Population Per</br>Square Mile: ${this.currentData[key].pop_per_sqmiles.toFixed(2).toLocaleString("en-US")}`;
+    }
+    else if (this.selectedData === "pop-increase") {
+      return `${name} Population Increase</br>Since 2010: ${this.currentData[key].percentIncrease}%`;
+    }
+  }
+
   setupSvg(state, countyPopData, totalStatePopulation) {
+
+    // Inspiration for the hoverable tooltip was gathered from here: https://bl.ocks.org/d3noob/a22c42db65eb00d4e369
+    let tooltip = d3.select(".visualization").append("div")
+      .attr("class", "tooltip invisible")
+
     this.stateSVG = d3
       .select(".visualization")
       .append("svg")
@@ -113,6 +131,8 @@ class State {
 
     projection.scale(s).translate(t);
 
+    let self = this;
+
     this.stateSVG
       .selectAll(".county")
       .data(state.features)
@@ -127,6 +147,18 @@ class State {
       }) // this GEOID maps back to the fips code in the countyPopulation data. You can use it as a key to get the population data
       .on("click", (e, d) => {
         this.countyTotal.drawChart(d.properties.GEOID);
+      })
+      .on("mouseover", function (event, d) {
+        d3.select(this).style("fill-opacity", 0.5);
+        tooltip
+          .html(self.getHelpText(d.properties.GEOID))
+          .attr("class", "tooltip visible")
+          .style("left", `${event.x}px`)
+          .style("top", `${event.y}px`);
+      })
+      .on("mouseout", function (event, d) {
+        d3.select(this).style("fill-opacity", 1);
+        tooltip.attr("class", "tooltip invisible");
       });
 
     this.createLegend(countyPopData, totalStatePopulation);
@@ -146,6 +178,7 @@ class State {
    * Updated legend axis scale with new values from chosen year
    */
   updateLegend(countyPopData, totalStatePopulation) {
+    this.currentData = countyPopData;
     let tickFormat;
     switch (this.selectedData) {
       case "total-pop":

@@ -75,14 +75,14 @@ text {
 .tooltip {
   position: absolute;
   text-align: center;
-  background-color: white;
-  color: black;
+  background-color: black;
+  color: white;
   padding: 0.5em;
   pointer-events: none;
 }
 
 .visible {
-  opacity: 1;
+  opacity: 0.75;
 }
 
 .invisible {
