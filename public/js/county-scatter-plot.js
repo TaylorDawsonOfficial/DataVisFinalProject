@@ -3,7 +3,7 @@ class CountyScatterPlot {
     this.countyData = countyData;
     this.scatterplotCountyData;
     this.dataIsNotFilteredValue = dataIsNotFilteredValue;
-    this.margin = { top: 40, right: 40, bottom: 45, left: 85 };
+    this.margin = { top: 40, right: 85, bottom: 45, left: 85 };
     this.width = 900;
     this.height = 300;
     this.formatData();
@@ -94,6 +94,8 @@ class CountyScatterPlot {
   }
 
   drawCircles() {
+    let tooltip = d3.select(".tooltip");
+
     this.svg.selectAll("circle")
       .data(this.scatterplotCountyData)
       .join(
@@ -103,10 +105,22 @@ class CountyScatterPlot {
             .attr("r", 5)
             .attr("cx", d => this.xScale(d.mileage))
             .attr("cy", d => this.yScale(d.population))
-            .attr("fill", "black")
+            .attr("fill", "lightblue")
+            .attr("stroke", "black")
+            .on("mouseover", function (event, d) {
+              d3.select(this).style("fill-opacity", 0.5);
+              tooltip
+                .html(`${d.countyName}<br>Land Area: ${d.mileage.toLocaleString("en-US")} mi^2<br>Population: ${d.population.toLocaleString("en-US")}`)
+                .attr("class", "tooltip visible")
+                .style("left", `${event.x}px`)
+                .style("top", `${event.y}px`);
+            })
+            .on("mouseout", function (event, d) {
+              d3.select(this).style("fill-opacity", 1);
+              tooltip.attr("class", "tooltip invisible");
+            });
         },
         (update) => {
-          console.log('in update');
           update.transition().duration(500)
             .attr("cx", d => this.xScale(d.mileage))
             .attr("cy", d => this.yScale(d.population))
@@ -122,10 +136,8 @@ class CountyScatterPlot {
   }
 
   updateCircles(newData) {
-    console.log(this.scatterplotCountyData);
     this.countyData = newData;
     this.formatData();
-    console.log(this.scatterplotCountyData);
 
     this.yScale.domain([
       d3.min(this.scatterplotCountyData, (d) => d.population),

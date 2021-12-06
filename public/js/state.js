@@ -31,6 +31,7 @@ class State {
     this.legendWidth = 800;
     this.legendHeight = 25;
     this.selectedData = startingData;
+    this.currentData;
 
     let key = Object.keys(topologyData.objects)[0];
     let state = topojson.feature(topologyData, topologyData.objects[key]);
@@ -59,23 +60,22 @@ class State {
 
     //Chart 3: Create area chart for counties population
     this.countyTotal = new CountyTotal(this.countyPopulationData);
-    console.log("Graph 3: ", this.countyPopulationData);
   }
 
   fillCounty(county, population_percentage) {
     $(`.${county}`).css("fill", this.mapColorFill(population_percentage));
   }
 
-  getHelpText(name) {
-    let key = name.replace(" ", "");
+  getHelpText(key) {
+    let name = this.currentData[key].name;
     if (this.selectedData === "total-pop") {
       return `${name} Population: ${this.currentData[key].population.toLocaleString("en-US")}`;
     }
     else if (this.selectedData === "square-mile") {
-      return `${name} Population Per</br>Square Mile: ${this.currentData[key].landarea.toFixed(2).toLocaleString("en-US")}`;
+      return `${name} Population Per</br>Square Mile: ${this.currentData[key].pop_per_sqmiles.toFixed(2).toLocaleString("en-US")}`;
     }
     else if (this.selectedData === "pop-increase") {
-      return `${name} Population Increase</br>Since 1969: ${this.currentData[key].percent_increase}%`;
+      return `${name} Population Increase</br>Since 2010: ${this.currentData[key].percentIncrease}%`;
     }
   }
 
@@ -149,10 +149,9 @@ class State {
         this.countyTotal.drawChart(d.properties.GEOID);
       })
       .on("mouseover", function (event, d) {
-        console.log(d.properties);
         d3.select(this).style("fill-opacity", 0.5);
         tooltip
-          .html(self.getHelpText(d.properties.NAME, countyPopData))
+          .html(self.getHelpText(d.properties.GEOID))
           .attr("class", "tooltip visible")
           .style("left", `${event.x}px`)
           .style("top", `${event.y}px`);
@@ -179,6 +178,7 @@ class State {
    * Updated legend axis scale with new values from chosen year
    */
   updateLegend(countyPopData, totalStatePopulation) {
+    this.currentData = countyPopData;
     let tickFormat;
     switch (this.selectedData) {
       case "total-pop":

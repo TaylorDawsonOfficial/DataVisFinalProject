@@ -2,7 +2,7 @@ class StateTotal {
   constructor(stateName, stateData) {
     this.stateName = stateName;
     this.stateData = stateData;
-    this.margin = { top: 40, right: 40, bottom: 40, left: 85 };
+    this.margin = { top: 40, right: 85, bottom: 40, left: 85 };
     this.width = 900;
     this.height = 300;
     this.formatData();
@@ -21,6 +21,8 @@ class StateTotal {
   }
 
   drawSvg() {
+    let tooltip = d3.select(".tooltip");
+
     let svg = d3
       .select(".graph1")
       .append("svg")
@@ -53,7 +55,7 @@ class StateTotal {
       .range([this.height - this.margin.bottom, this.margin.top]);
 
     let xAxis = d3.axisBottom(xScale).tickFormat(d3.format("d"));
-    let yAxis = d3.axisLeft(yScale).tickFormat(d3.format(".3s"));
+    let yAxis = d3.axisLeft(yScale).tickFormat(d3.format("~s"));
 
     let xAxisGroup = svg
       .append("g")
@@ -91,7 +93,8 @@ class StateTotal {
         .x((d) => { return xScale(d.year); })
         .y((d) => { return yScale(d.population); })
       )
-      .on("mousemove", (event, d) => {
+      .on("mouseover", function (event, d) {
+        d3.select(this).style("fill-opacity", 0.5);
       })
 
     // add circles for better visibility
@@ -104,5 +107,17 @@ class StateTotal {
       .attr("cy", d => { return yScale(d.population) })
       .attr("r", 3)
       .attr("class", "circle")
+      .on("mouseover", function (event, d) {
+        d3.select(this).style("fill-opacity", 0.5);
+        tooltip
+          .html(`Population in ${d.year}: ${d.population.toLocaleString("en-US")}`)
+          .attr("class", "tooltip visible")
+          .style("left", `${event.x}px`)
+          .style("top", `${event.y}px`);
+      })
+      .on("mouseout", function (event, d) {
+        d3.select(this).style("fill-opacity", 1);
+        tooltip.attr("class", "tooltip invisible");
+      })
   }
 }

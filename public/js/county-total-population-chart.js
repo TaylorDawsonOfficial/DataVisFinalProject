@@ -3,7 +3,7 @@ class CountyTotal {
     this.countyPopulationData = countyPopulationData;
     this.currentPopulationData;
     this.currentCountyName;
-    this.margin = { top: 40, right: 40, bottom: 40, left: 85 };
+    this.margin = { top: 40, right: 85, bottom: 40, left: 85 };
     this.width = 900;
     this.height = 300;
     this.svgAdded = false;
@@ -48,7 +48,7 @@ class CountyTotal {
       .attr("x", this.width / 2)
       .attr("y", this.margin.top / 2)
       .attr("text-anchor", "middle")
-      .text(`${this.currentCountyName} population from 2010-2019`);
+      .text(`${this.currentCountyName} Total Population from 2010-2019`);
 
     //Create and add axes
     this.xScale = d3
@@ -65,7 +65,7 @@ class CountyTotal {
       .range([this.height - this.margin.bottom, this.margin.top]);
 
     this.xAxis = d3.axisBottom(this.xScale).tickFormat(d3.format("d"));
-    this.yAxis = d3.axisLeft(this.yScale).tickFormat(d3.format(".3s"));
+    this.yAxis = d3.axisLeft(this.yScale).tickFormat(d3.format("~s"));
 
     this.xAxisGroup = this.svg
       .append("g")
@@ -164,7 +164,7 @@ class CountyTotal {
 
       this.currentPopulationData.push({
         year: +year,
-        population: +d[1][countyId].population,
+        population: +d[1][countyId].population
       });
     });
 
