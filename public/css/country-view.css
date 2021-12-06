@@ -148,3 +148,9 @@ button:hover span:after {
   opacity: 1;
   right: 0;
 }
+
+.label {
+  fill: black;
+  font-weight: bold;
+  font-size: 10pt;
+}

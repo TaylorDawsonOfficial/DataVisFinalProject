@@ -1,6 +1,6 @@
 class CountryBarChart {
   constructor(data, selectedData) {
-    this.margin = { top: 20, right: 20, bottom: 95, left: 95 };
+    this.margin = { top: 20, right: 20, bottom: 110, left: 75 };
     this.width = 860;
     this.height = 500;
     this.data = data;
@@ -28,7 +28,7 @@ class CountryBarChart {
     d3.select(".x-axis")
       .transition().duration(800)
       .call(this.xAxis)
-      .selectAll("text")
+      .selectAll(".tick text")
       .style("text-anchor", "end")
       .attr("dx", "-.9em")
       .attr("dy", ".25em")
@@ -114,7 +114,12 @@ class CountryBarChart {
       .range([this.height - this.margin.bottom, this.margin.top]);
 
     this.xAxis = d3.axisBottom(this.xScale);
-    this.yAxis = d3.axisLeft(this.yScale);
+    this.yAxis = d3.axisLeft(this.yScale).tickFormat(function (d) {
+      if (d > 1000000) {
+        return `${d / 1000000}M`
+      }
+      return d;
+    })
 
 
     this.svg.append("g")
@@ -129,8 +134,17 @@ class CountryBarChart {
       .attr("class", "x-axis")
       .attr("transform", `translate(0, ${this.height - this.margin.bottom})`)
       .call(this.xAxis)
-      .selectAll("text")
-      .style("text-anchor", "end")
+
+    this.xAxisGroup
+      .append("g")
+      .attr("transform", `translate(${this.width / 2}, 110)`)
+      .append("text")
+      .attr("class", "label")
+      .attr("text-anchor", "middle")
+      .text("State");
+
+    this.xAxisGroup.selectAll(".tick text")
+      .attr("text-anchor", "end")
       .attr("dx", "-.8em")
       .attr("dy", ".15em")
       .attr("transform", "rotate(-65)");
@@ -140,12 +154,13 @@ class CountryBarChart {
       .call(this.yAxis)
 
     this.yAxisGroup.append("g")
-      .attr("transform", `translate(-80, ${this.height / 2})`)
+      .attr("transform", `translate(-50, ${this.height / 2 - this.margin.top})`)
       .append("text")
       .attr("class", "label")
+      .attr("id", "yAxisLabel")
       .attr("text-anchor", "middle")
       .attr("transform", "rotate(-90)")
-      .text("Population")
+      .text(this.getLabel())
 
     let self = this;
     this.svg.append("g")
@@ -175,15 +190,28 @@ class CountryBarChart {
       .attr("class", d => { return (d.population < 0 ? "bar bar-negative" : "bar bar-positive"); });
   }
 
+  getLabel() {
+    if (this.selectedData === 'total-pop') {
+      return "Population";
+    }
+    else if (this.selectedData === 'square-mile') {
+      return "Population Per Square Mile";
+    }
+    else if (this.selectedData === "pop-increase") {
+      return "Population Increase Since 1969"
+    }
+  }
+
   assignPopData(newData) {
     // inspiration from here: https://bl.ocks.org/martinjc/f2241a09bd18caad10fc7249ca5d7816
-
     this.data = newData;
 
     let minVal = d3.min(this.data, d => { return d.population });
     if (minVal > 0) {
       minVal = 0;
     }
+
+    d3.select("#yAxisLabel").text(this.getLabel());
 
     let t = d3.transition().duration(800);
     this.yScale.domain([minVal, d3.max(newData, d => { return d.population })]);
