@@ -32,6 +32,9 @@ class State {
     this.legendHeight = 25;
     this.selectedData = startingData;
     this.currentData;
+    this.highlightedColor = "red";
+    this.hoveredCountyColor;
+    this.hoveredCountyID;
 
     let key = Object.keys(topologyData.objects)[0];
     let state = topojson.feature(topologyData, topologyData.objects[key]);
@@ -55,7 +58,7 @@ class State {
     //Chart 2: Create scatter plot for relation from population to square miles
     this.countyScatterPlot = new CountyScatterPlot(
       this.countyPopulationData[dataStartYear],
-      (x) => this.dataIsNotFilteredValue(x)
+      (x) => this.dataIsNotFilteredValue(x), this
     );
 
     //Chart 3: Create area chart for counties population
@@ -132,6 +135,7 @@ class State {
     projection.scale(s).translate(t);
 
     let self = this;
+    let hoveredColor;
 
     this.stateSVG
       .selectAll(".county")
@@ -149,7 +153,9 @@ class State {
         this.countyTotal.drawChart(d.properties.GEOID);
       })
       .on("mouseover", function (event, d) {
-        d3.select(this).style("fill-opacity", 0.5);
+        hoveredColor = d3.select(this).style("fill");
+        d3.select(this).style("fill", self.highlightedColor);
+        self.countyScatterPlot.fillDot(`scatplot__${d.properties.GEOID}`, self.highlightedColor);
         tooltip
           .html(self.getHelpText(d.properties.GEOID))
           .attr("class", "tooltip visible")
@@ -157,7 +163,8 @@ class State {
           .style("top", `${event.y}px`);
       })
       .on("mouseout", function (event, d) {
-        d3.select(this).style("fill-opacity", 1);
+        self.countyScatterPlot.refillDot(`scatplot__${d.properties.GEOID}`);
+        d3.select(this).style("fill", hoveredColor);
         tooltip.attr("class", "tooltip invisible");
       });
 
@@ -330,5 +337,15 @@ class State {
       valueToTest === "largest_landarea" ||
       valueToTest === "year"
     );
+  }
+
+  fillHoveredCounty(countyClassID){
+    this.hoveredCountyID = countyClassID;
+    this.hoveredCountyColor = $(`.${countyClassID}`).css("fill");
+    $(`.${countyClassID}`).css("fill", this.highlightedColor);
+  }
+
+  refillHoveredCounty(){
+    $(`.${this.hoveredCountyID}`).css("fill", this.hoveredCountyColor);
   }
 }
