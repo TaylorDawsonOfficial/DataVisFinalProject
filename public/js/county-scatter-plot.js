@@ -1,11 +1,14 @@
 class CountyScatterPlot {
-  constructor(countyData, dataIsNotFilteredValue) {
+  constructor(countyData, dataIsNotFilteredValue, state) {
     this.countyData = countyData;
     this.scatterplotCountyData;
     this.dataIsNotFilteredValue = dataIsNotFilteredValue;
     this.margin = { top: 40, right: 85, bottom: 45, left: 85 };
     this.width = 900;
     this.height = 300;
+    this.stateObject = state;
+    this.dotColor = "lightblue";
+    console.log(this.stateObject);
     this.formatData();
     this.setupSvg();
   }
@@ -94,6 +97,7 @@ class CountyScatterPlot {
   }
 
   drawCircles() {
+    let scatterPlotObject = this;
     let tooltip = d3.select(".tooltip");
 
     this.svg.selectAll("circle")
@@ -103,21 +107,27 @@ class CountyScatterPlot {
           let circles = enter.append("g")
           circles.append("circle")
             .attr("r", 5)
+            .attr("class", d => `scatplot__${d.countyID}`)
             .attr("cx", d => this.xScale(d.mileage))
             .attr("cy", d => this.yScale(d.population))
-            .attr("fill", "lightblue")
+            .attr("fill", this.dotColor)
             .attr("stroke", "black")
             .on("mouseover", function (event, d) {
+              d3.select(this).style("fill", "red");
               d3.select(this).style("fill-opacity", 0.5);
               tooltip
                 .html(`${d.countyName}<br>Land Area: ${d.mileage.toLocaleString("en-US")} mi^2<br>Population: ${d.population.toLocaleString("en-US")}`)
                 .attr("class", "tooltip visible")
                 .style("left", `${event.x}px`)
                 .style("top", `${event.y}px`);
+
+              scatterPlotObject.stateObject.fillHoveredCounty(`county__${d.countyID}`);
             })
             .on("mouseout", function (event, d) {
               d3.select(this).style("fill-opacity", 1);
               tooltip.attr("class", "tooltip invisible");
+              scatterPlotObject.stateObject.refillHoveredCounty();
+              d3.select(this).style("fill", this.dotColor);
             });
         },
         (update) => {
@@ -149,6 +159,14 @@ class CountyScatterPlot {
       d3.max(this.scatterplotCountyData, (d) => d.mileage)
     ]);
     this.drawCircles();
+  }
+
+  fillDot(countyID, color){
+    $(`.${countyID}`).css("fill", color);
+  }
+
+  refillDot(countyID){
+    $(`.${countyID}`).css("fill", this.dotColor);
   }
 }
 
