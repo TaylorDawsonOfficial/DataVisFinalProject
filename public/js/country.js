@@ -49,13 +49,14 @@ class Country {
   getHelpText(name) {
     let key = name.replace(" ", "");
     if (this.selectedData === "total-pop") {
-      return `${name} Population: ${this.currentData[key].population.toLocaleString("en-US")}`;
+      const percent = ((this.currentData[key].population / this.currentData["total_population"]) * 100).toFixed(2);
+      return `${name} Population: ${percent}% | ${this.currentData[key].population.toLocaleString("en-US")}`;
     }
     else if (this.selectedData === "square-mile") {
       return `${name} Population Per</br>Square Mile: ${this.currentData[key].landarea.toFixed(2).toLocaleString("en-US")}`;
     }
     else if (this.selectedData === "pop-increase") {
-      return `${name} Population Increase</br>Since 1969: ${this.currentData[key].percent_increase}%`;
+      return `${name} Population Change</br>Since 1969: ${this.currentData[key].percent_increase}%`;
     }
   }
 
@@ -95,6 +96,7 @@ class Country {
       })
       .on("mouseover", function (event, d) {
         d3.select(this).style("fill-opacity", 0.5);
+        console.log(populationData);
         tooltip
           .html(self.getHelpText(d.properties.name, populationData))
           .attr("class", "tooltip visible")
