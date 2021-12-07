@@ -2,17 +2,28 @@ class Country {
   constructor(topologyData, initialYearData, selectedDataType) {
     this.width = 960;
     this.height = 600;
-    this.mapColors = [
-      "#f3f0ff",
-      "#e5dbff",
-      "#d0bfff",
-      "#b197fc",
-      "#9775fa",
-      "#845ef7",
-      "#7950f2",
-      "#7048e8",
-      "#6741d9",
-      "#5f3dc4",
+    this.sequentialColors = [
+      "#f7f7f7",
+      "#e1dce4",
+      "#cac0d1",
+      "#b4a5be",
+      "#9d89ab",
+      "#876e97",
+      "#705284",
+      "#5a3771",
+      "#431b5e",
+      "#2d004b",
+    ];
+    this.divergingColors = [
+      "#b35806",
+      "#bc691c",
+      "#c67a32",
+      "#cf8b48",
+      "#d99c5e",
+      "#e2ad74",
+      "#ebbe8a",
+      "#f5cfa0",
+      "#fee0b6"
     ];
     this.mapColorFill;
     this.minAxisValue;
@@ -103,8 +114,6 @@ class Country {
    * @param {} populationData
    */
   createLegend(populationData) {
-    this.mapColorFill = d3.scaleQuantile().range(this.mapColors);
-
     this.updateLegend(populationData);
   }
 
@@ -148,23 +157,55 @@ class Country {
     }
 
     //Legend data
-    this.mapColorFill.domain([this.minAxisValue, this.maxAxisValue]);
+    let legendScale = [];
+    let mapColors;
+
+    if (this.minAxisValue < 0) {
+      let diff = (this.maxAxisValue - this.minAxisValue) / (this.sequentialColors.length - 1);
+      let zeroIndex;
+      for (let i = 0; i < this.sequentialColors.length - 1; i++) {
+        let val = diff * i + +this.minAxisValue;
+        if (val >= 0) {
+          zeroIndex = i;
+          break;
+        }
+      }
+
+      mapColors = [];
+      let negativeDiff = Math.abs(this.minAxisValue) / zeroIndex;
+      for (let i = 0; i < zeroIndex; i++) {
+        legendScale.push(negativeDiff * i + this.minAxisValue)
+        mapColors.push(this.divergingColors[this.divergingColors.length - zeroIndex + i])
+      }
+      legendScale.push(0);
+
+      let positiveDiff = this.maxAxisValue / (this.sequentialColors.length - zeroIndex)
+      for (let i = zeroIndex + 1; i <= this.sequentialColors.length; i++) {
+        legendScale.push(positiveDiff * (i - zeroIndex));
+        mapColors.push(this.sequentialColors[i - zeroIndex - 1]);
+      }
+    }
+    else {
+      mapColors = this.sequentialColors;
+      let diff = (this.maxAxisValue - this.minAxisValue) / this.sequentialColors.length;
+      for (let i = 0; i < this.sequentialColors.length; i++) {
+        legendScale.push(diff * i + +this.minAxisValue);
+      }
+      legendScale.push(this.maxAxisValue);
+    }
+
+    this.mapColorFill = d3.scaleQuantile().range(mapColors);
+    this.mapColorFill.domain(legendScale);
 
     let fillRange = [];
-    for (let i = 0; i <= this.mapColors.length; i++) {
-      fillRange.push((this.legendWidth / this.mapColors.length) * i);
+    for (let i = 0; i <= this.sequentialColors.length; i++) {
+      fillRange.push((this.legendWidth / this.sequentialColors.length) * i);
     }
 
     let legendAxisScale = d3.scaleQuantile().range(fillRange);
 
-    let diff = (this.maxAxisValue - this.minAxisValue) / this.mapColors.length;
-    let legendScale = [];
-    legendScale.push(this.minAxisValue);
-    for (let i = 0; i < this.mapColors.length - 1; i++) {
-      legendScale.push(diff * (i + 1) + +this.minAxisValue);
-    }
 
-    legendScale.push(this.maxAxisValue);
+
 
     legendAxisScale.domain(legendScale);
 
@@ -174,7 +215,7 @@ class Country {
 
     let legend = this.countrySVG
       .selectAll(".legend")
-      .data(this.mapColors)
+      .data(mapColors)
       .enter()
       .append("g")
       .attr(
@@ -184,10 +225,10 @@ class Country {
 
     legend
       .append("rect")
-      .attr("width", this.legendWidth / this.mapColors.length)
+      .attr("width", this.legendWidth / this.sequentialColors.length)
       .attr("height", this.legendHeight)
       .style("fill", (d) => d)
-      .attr("x", (d, i) => (this.legendWidth / this.mapColors.length) * i);
+      .attr("x", (d, i) => (this.legendWidth / this.sequentialColors.length) * i);
 
     this.countrySVG
       .append("g")
