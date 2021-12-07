@@ -109,6 +109,7 @@ class CountyScatterPlot {
             .attr("fill", "lightblue")
             .attr("stroke", "black")
             .on("mouseover", function (event, d) {
+              d3.select(this).style("fill", "red");
               d3.select(this).style("fill-opacity", 0.5);
               tooltip
                 .html(`${d.countyName}<br>Land Area: ${d.mileage.toLocaleString("en-US")} mi^2<br>Population: ${d.population.toLocaleString("en-US")}`)
@@ -119,6 +120,7 @@ class CountyScatterPlot {
             .on("mouseout", function (event, d) {
               d3.select(this).style("fill-opacity", 1);
               tooltip.attr("class", "tooltip invisible");
+              d3.select(this).style("fill", "lightblue");
             });
         },
         (update) => {
