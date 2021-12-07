@@ -8,7 +8,6 @@ class CountyScatterPlot {
     this.height = 300;
     this.stateObject = state;
     this.dotColor = "lightblue";
-    console.log(this.stateObject);
     this.formatData();
     this.setupSvg();
   }
@@ -161,11 +160,11 @@ class CountyScatterPlot {
     this.drawCircles();
   }
 
-  fillDot(countyID, color){
+  fillDot(countyID, color) {
     $(`.${countyID}`).css("fill", color);
   }
 
-  refillDot(countyID){
+  refillDot(countyID) {
     $(`.${countyID}`).css("fill", this.dotColor);
   }
 }
