@@ -103,6 +103,7 @@ class CountyScatterPlot {
           let circles = enter.append("g")
           circles.append("circle")
             .attr("r", 5)
+            .attr("class", d => `county__${d.countyID}`)
             .attr("cx", d => this.xScale(d.mileage))
             .attr("cy", d => this.yScale(d.population))
             .attr("fill", "lightblue")
