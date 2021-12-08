@@ -198,7 +198,7 @@ class CountryBarChart {
       return "Population Per Square Mile";
     }
     else if (this.selectedData === "pop-increase") {
-      return "Population Increase Since 1969"
+      return "Population Change Since 1969"
     }
   }
 

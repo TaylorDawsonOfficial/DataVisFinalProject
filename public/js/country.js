@@ -60,6 +60,18 @@ class Country {
     }
   }
 
+  getLegendTitle() {
+    if (this.selectedData === "total-pop") {
+      return "Percentage of Total Population";
+    }
+    else if (this.selectedData === "square-mile") {
+      return "Number of People Per Square Mile";
+    }
+    else if (this.selectedData === "pop-increase") {
+      return "Percentage of Population Change";
+    }
+  }
+
   setupSvg(paths, populationData) {
     // Inspiration for the hoverable tooltip was gathered from here: https://bl.ocks.org/d3noob/a22c42db65eb00d4e369
     let tooltip = d3.select(".visualization").append("div")
@@ -109,6 +121,13 @@ class Country {
       })
 
     this.createLegend(populationData);
+
+    this.countrySVG.append("text")
+      .attr("id", "legendTitle")
+      .attr("x", this.width / 2)
+      .attr("y", this.height - 10)
+      .attr("text-anchor", "middle")
+      .text(this.getLegendTitle())
   }
 
   /**
@@ -222,7 +241,7 @@ class Country {
       .append("g")
       .attr(
         "transform",
-        `translate(${this.width - this.legendWidth - 75}, ${this.height - (this.legendHeight * 2)})`
+        `translate(${this.width - this.legendWidth - 75}, ${this.height - (this.legendHeight * 3)})`
       );
 
     legend
@@ -237,9 +256,12 @@ class Country {
       .attr("class", "axis axis__legend")
       .attr(
         "transform",
-        `translate(${this.width - this.legendWidth - 75}, ${this.height - this.legendHeight})`
+        `translate(${this.width - this.legendWidth - 75}, ${this.height - this.legendHeight * 2})`
       )
       .call(legendAxis);
+
+    d3.select("#legendTitle")
+      .text(this.getLegendTitle())
   }
 
   /*

@@ -93,6 +93,18 @@ class State {
     }
   }
 
+  getLegendTitle() {
+    if (this.selectedData === "total-pop") {
+      return "Percentage of Total Population";
+    }
+    else if (this.selectedData === "square-mile") {
+      return "Number of People Per Square Mile";
+    }
+    else if (this.selectedData === "pop-increase") {
+      return "Percentage of Population Change";
+    }
+  }
+
   setupSvg(state, countyPopData, totalStatePopulation) {
 
     // Inspiration for the hoverable tooltip was gathered from here: https://bl.ocks.org/d3noob/a22c42db65eb00d4e369
@@ -117,8 +129,15 @@ class State {
       .attr("x", 0)
       .attr("y", 0)
       .attr("id", "svg-state-map-legend")
-      .attr("viewBox", `0 0 ${this.width} ${this.legendHeight + 30}`)
+      .attr("viewBox", `0 0 ${this.width} ${this.legendHeight + 70}`)
       .attr("preserveAspectRatio", "xMidYMid meet");
+
+    this.legendSVG.append("text")
+      .attr("id", "legendTitle")
+      .attr("x", this.width / 2)
+      .attr("y", 80)
+      .attr("text-anchor", "middle")
+      .text(this.getLegendTitle())
 
     // for some reason Alaska is weird and looks small with geoMercator
     let projection;
@@ -226,6 +245,7 @@ class State {
     let legendScale = [];
     let mapColors;
 
+    // this section is for our negative color legend
     if (this.minAxisValue < 0) {
       let diff = (this.maxAxisValue - this.minAxisValue) / (this.sequentialColors.length - 1);
       let zeroIndex;
@@ -251,6 +271,7 @@ class State {
         mapColors.push(this.sequentialColors[i - zeroIndex - 1]);
       }
     }
+    // normal color legend
     else {
       mapColors = this.sequentialColors;
       let diff = (this.maxAxisValue - this.minAxisValue) / this.sequentialColors.length;
@@ -296,6 +317,9 @@ class State {
       .attr("class", "axis axis__legend")
       .attr("transform", `translate(75, ${this.legendHeight})`)
       .call(legendAxis);
+
+    d3.select("#legendTitle")
+      .text(this.getLegendTitle())
   }
 
   /*
