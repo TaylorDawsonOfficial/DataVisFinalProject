@@ -89,7 +89,7 @@ class State {
       return `${name} Population Per</br>Square Mile: ${this.currentData[key].pop_per_sqmiles.toFixed(2).toLocaleString("en-US")}`;
     }
     else if (this.selectedData === "pop-increase") {
-      return `${name} Population Increase</br>Since 2010: ${this.currentData[key].percentIncrease}%`;
+      return `${name} Population Change</br>Since 2010: ${this.currentData[key].percentIncrease}%`;
     }
   }
 
