@@ -255,7 +255,7 @@ class State {
       mapColors = this.sequentialColors;
       let diff = (this.maxAxisValue - this.minAxisValue) / this.sequentialColors.length;
       for (let i = 0; i < this.sequentialColors.length; i++) {
-        legendScale.push(diff * i - +this.minAxisValue);
+        legendScale.push(diff * i + this.minAxisValue);
       }
       legendScale.push(this.maxAxisValue);
     }
@@ -371,13 +371,13 @@ class State {
     );
   }
 
-  fillHoveredCounty(countyClassID){
+  fillHoveredCounty(countyClassID) {
     this.hoveredCountyID = countyClassID;
     this.hoveredCountyColor = $(`.${countyClassID}`).css("fill");
     $(`.${countyClassID}`).css("fill", this.highlightedColor);
   }
 
-  refillHoveredCounty(){
+  refillHoveredCounty() {
     $(`.${this.hoveredCountyID}`).css("fill", this.hoveredCountyColor);
   }
 }
